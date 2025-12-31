@@ -1,0 +1,81 @@
+{
+  "name": "tauri-plugin-debug-tools",
+  "version": "0.1.0",
+  "description": "Comprehensive debug utilities for Tauri WebView applications with AI-powered automated debugging workflows",
+  "license": "MIT OR Apache-2.0",
+  "author": "8beeeaaat <8beeeaaat@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/8beeeaaat/tauri-plugin-debug-tools.git"
+  },
+  "bugs": {
+    "url": "https://github.com/8beeeaaat/tauri-plugin-debug-tools/issues"
+  },
+  "homepage": "https://github.com/8beeeaaat/tauri-plugin-debug-tools#readme",
+  "keywords": [
+    "tauri",
+    "plugin",
+    "debug",
+    "webview",
+    "logging",
+    "debugging",
+    "console",
+    "ai-agent",
+    "codex"
+  ],
+  "type": "module",
+  "types": "./dist-js/index.d.ts",
+  "main": "./dist-js/index.js",
+  "module": "./dist-js/index.js",
+  "exports": {
+    ".": {
+      "types": "./dist-js/index.d.ts",
+      "import": "./dist-js/index.js"
+    },
+    "./consoleLogger": {
+      "types": "./dist-js/consoleLogger.d.ts",
+      "import": "./dist-js/consoleLogger.js"
+    },
+    "./debugBridge": {
+      "types": "./dist-js/debugBridge.d.ts",
+      "import": "./dist-js/debugBridge.js"
+    },
+    "./logAdapter": {
+      "types": "./dist-js/logAdapter.d.ts",
+      "import": "./dist-js/logAdapter.js"
+    },
+    "./screenshotHelper": {
+      "types": "./dist-js/screenshotHelper.d.ts",
+      "import": "./dist-js/screenshotHelper.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "format": "biome check --fix",
+    "lint": "run-p lint:*",
+    "lint:biome": "biome check",
+    "lint:tsc": "tsc --noEmit",
+    "test": "vitest run --config vitest.config.ts"
+  },
+  "files": [
+    "dist-js",
+    "guest-js",
+    "permissions",
+    "src",
+    "LICENSE",
+    "README.md"
+  ],
+  "dependencies": {
+    "@tauri-apps/api": "^2.9.1",
+    "@tauri-apps/plugin-log": "^2.7.1",
+    "tauri-plugin-screenshots-api": "^2.2.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.3.10",
+    "@types/node": "^25.0.3",
+    "bun-types": "^1.3.5",
+    "npm-run-all": "^4.1.5",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.16"
+  }
+}

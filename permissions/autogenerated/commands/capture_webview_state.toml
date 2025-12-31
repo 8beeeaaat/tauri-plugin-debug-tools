@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-capture-webview-state"
+description = "Enables the capture_webview_state command without any pre-configured scope."
+commands.allow = ["capture_webview_state"]
+
+[[permission]]
+identifier = "deny-capture-webview-state"
+description = "Denies the capture_webview_state command without any pre-configured scope."
+commands.deny = ["capture_webview_state"]

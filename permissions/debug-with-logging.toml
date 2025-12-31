@@ -1,0 +1,26 @@
+# Debug tools with official logging and screenshots plugins
+#
+# This permission set includes:
+# - Core debug-tools permissions
+# - Official tauri-plugin-log permissions
+# - Official tauri-plugin-screenshots permissions
+
+[[permission]]
+identifier = "debug-with-logging"
+description = "Debug tools with official logging and screenshots"
+commands.allow = [
+  # Debug tools commands
+  "capture_webview_state",
+  "get_console_logs",
+  "send_debug_command",
+  "append_debug_logs",
+  "reset_debug_logs",
+  "write_debug_snapshot"
+]
+
+# Include official plugin permissions
+permissions = [
+  "core:default",
+  "log:default",
+  "screenshots:default"
+]

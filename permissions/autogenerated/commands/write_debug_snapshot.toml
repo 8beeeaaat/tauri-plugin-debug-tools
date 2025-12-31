@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-write-debug-snapshot"
+description = "Enables the write_debug_snapshot command without any pre-configured scope."
+commands.allow = ["write_debug_snapshot"]
+
+[[permission]]
+identifier = "deny-write-debug-snapshot"
+description = "Denies the write_debug_snapshot command without any pre-configured scope."
+commands.deny = ["write_debug_snapshot"]

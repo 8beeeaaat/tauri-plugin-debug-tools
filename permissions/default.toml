@@ -1,0 +1,26 @@
+"$schema" = "schemas/schema.json"
+
+[default]
+description = """
+Allows debug-tools commands for WebView inspection and log capture.
+
+#### Granted Permissions
+
+All debug-tools commands are enabled by default.
+
+#### Note
+
+For full functionality, also enable official plugins:
+- `log:default` for automatic console log collection
+- `screenshots:default` for cross-platform screenshot capture
+
+"""
+
+permissions = [
+  "allow-capture-webview-state",
+  "allow-get-console-logs",
+  "allow-send-debug-command",
+  "allow-append-debug-logs",
+  "allow-reset-debug-logs",
+  "allow-write-debug-snapshot",
+]

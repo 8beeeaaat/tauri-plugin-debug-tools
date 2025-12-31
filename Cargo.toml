@@ -1,0 +1,29 @@
+[package]
+name = "tauri-plugin-debug-tools"
+version = "0.1.0"
+description = "Debug utilities for Tauri WebView apps."
+edition = "2021"
+license = "MIT OR Apache-2.0"
+links = "tauri-plugin-debug-tools"
+authors = ["8beeeaaat <8beeeaaat@gmail.com>"]
+repository = "https://github.com/8beeeaaat/tauri-plugin-debug-tools"
+homepage = "https://github.com/8beeeaaat/tauri-plugin-debug-tools"
+documentation = "https://docs.rs/tauri-plugin-debug-tools"
+readme = "README.md"
+keywords = ["tauri", "plugin", "debug", "webview", "logging"]
+categories = ["development-tools", "api-bindings"]
+rust-version = "1.77.2"
+exclude = ["/examples", "/dist-js", "/guest-js", "/node_modules", "/target"]
+
+[lib]
+crate-type = ["rlib"]
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tauri = { version = "2" }
+tauri-plugin-log = "2"
+tauri-plugin-screenshots = "2"
+
+[build-dependencies]
+tauri-plugin = { version = "2", features = ["build"] }

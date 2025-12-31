@@ -1,0 +1,19 @@
+{
+  "name": "examples-demo-app",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "tauri": "tauri",
+    "dev": "bun run tauri dev",
+    "build": "tauri build --debug",
+    "e2e": "vitest run --config vitest.config.ts"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2",
+    "@types/node": "^25.0.3",
+    "@types/selenium-webdriver": "^4.35.4",
+    "selenium-webdriver": "^4.39.0",
+    "vitest": "^4.0.16"
+  }
+}

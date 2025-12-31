@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="styles.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tauri App</title>
+    <script type="module" src="/main.js" defer></script>
+  </head>
+
+  <body>
+    <main class="container">
+      <h1 aria-label="app-title">Welcome to Tauri</h1>
+
+      <form class="row" id="greet-form">
+        <input
+          id="greet-input"
+          aria-label="greet-input"
+          placeholder="Enter a name..."
+        />
+        <button type="submit" aria-label="greet-button">Greet</button>
+      </form>
+      <p id="greet-msg" aria-label="greet-msg"></p>
+
+      <section class="debug">
+        <h2 aria-label="debug-title">Debug Tools</h2>
+        <div class="row">
+          <button id="debug-capture" aria-label="debug-capture">
+            Capture Webview State
+          </button>
+          <button id="debug-get-logs" aria-label="debug-get-logs">
+            Get Console Logs
+          </button>
+          <button id="debug-send-command" aria-label="debug-send-command">
+            Send Debug Command
+          </button>
+        </div>
+        <div class="row">
+          <button id="debug-reset-logs" aria-label="debug-reset-logs">
+            Reset Debug Logs
+          </button>
+          <button id="debug-append-logs" aria-label="debug-append-logs">
+            Append Debug Logs
+          </button>
+          <button id="debug-write-snapshot" aria-label="debug-write-snapshot">
+            Write Debug Snapshot
+          </button>
+        </div>
+        <p id="debug-webview-output" aria-label="debug-webview-output"></p>
+        <p id="debug-logs-output" aria-label="debug-logs-output"></p>
+        <p id="debug-command-output" aria-label="debug-command-output"></p>
+        <p id="debug-snapshot-output" aria-label="debug-snapshot-output"></p>
+      </section>
+    </main>
+  </body>
+</html>
