@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use std::path::PathBuf;
 use tauri::{AppHandle, Emitter, Manager, Runtime};
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -29,6 +30,11 @@ pub struct ConsoleLogEntryPayload {
     pub message: String,
     pub args: serde_json::Value,
     pub stack_trace: Option<String>,
+}
+
+fn console_log_path() -> PathBuf {
+    // Use platform temp directory to avoid hardcoded /tmp paths.
+    std::env::temp_dir().join("tauri_console_logs.jsonl")
 }
 
 /// Get WebView state.
@@ -96,11 +102,11 @@ pub async fn append_debug_logs(logs: Vec<ConsoleLogEntryPayload>) -> Result<Stri
         return Ok("no logs".to_string());
     }
 
-    let path = "/tmp/tauri_console_logs.jsonl";
+    let path = console_log_path();
     let mut file = std::fs::OpenOptions::new()
         .create(true)
         .append(true)
-        .open(path)
+        .open(&path)
         .map_err(|e| format!("Failed to open log file: {}", e))?;
 
     for entry in logs {
@@ -110,20 +116,20 @@ pub async fn append_debug_logs(logs: Vec<ConsoleLogEntryPayload>) -> Result<Stri
         writeln!(file, "{}", line).map_err(|e| format!("Failed to write log: {}", e))?;
     }
 
-    Ok(path.to_string())
+    Ok(path.to_string_lossy().into_owned())
 }
 
 /// Reset the console log file.
 #[tauri::command]
 pub async fn reset_debug_logs() -> Result<String, String> {
-    let path = "/tmp/tauri_console_logs.jsonl";
+    let path = console_log_path();
     std::fs::OpenOptions::new()
         .create(true)
         .write(true)
         .truncate(true)
-        .open(path)
+        .open(&path)
         .map_err(|e| format!("Failed to reset log file: {}", e))?;
-    Ok(path.to_string())
+    Ok(path.to_string_lossy().into_owned())
 }
 
 /// Save a debug snapshot to /tmp.
@@ -133,9 +139,9 @@ pub async fn write_debug_snapshot(payload: serde_json::Value) -> Result<String, 
         .duration_since(std::time::UNIX_EPOCH)
         .map_err(|e| format!("Failed to get timestamp: {}", e))?
         .as_secs();
-    let path = format!("/tmp/tauri_debug_snapshot_{}.json", ts);
+    let path = std::env::temp_dir().join(format!("tauri_debug_snapshot_{}.json", ts));
     let json = serde_json::to_string_pretty(&payload)
         .map_err(|e| format!("Failed to serialize payload: {}", e))?;
     std::fs::write(&path, json).map_err(|e| format!("Failed to write file: {}", e))?;
-    Ok(path)
+    Ok(path.to_string_lossy().into_owned())
 }

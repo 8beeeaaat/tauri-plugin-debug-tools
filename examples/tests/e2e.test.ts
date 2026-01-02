@@ -36,6 +36,7 @@ suite("Tauri E2E (tauri-driver)", () => {
     );
 
     const capabilities = {
+      // Linux: requires webkitgtk runtime; Windows: uses WebView2 runtime.
       browserName: process.platform === "linux" ? "webkitgtk" : "webview2",
       "tauri:options": {
         application: appPath,
@@ -106,14 +107,14 @@ suite("Tauri E2E (tauri-driver)", () => {
     const resetLogs = await driver.findElement(By.id("debug-reset-logs"));
     await resetLogs.click();
     await driver.wait(
-      until.elementTextContains(logsOutput, "/tmp/tauri_console_logs.jsonl"),
+      until.elementTextContains(logsOutput, "tauri_console_logs.jsonl"),
       10_000,
     );
 
     const appendLogs = await driver.findElement(By.id("debug-append-logs"));
     await appendLogs.click();
     await driver.wait(
-      until.elementTextContains(logsOutput, "/tmp/tauri_console_logs.jsonl"),
+      until.elementTextContains(logsOutput, "tauri_console_logs.jsonl"),
       10_000,
     );
 
@@ -123,7 +124,7 @@ suite("Tauri E2E (tauri-driver)", () => {
       By.id("debug-snapshot-output"),
     );
     await driver.wait(
-      until.elementTextContains(snapshotOutput, "/tmp/tauri_debug_snapshot_"),
+      until.elementTextContains(snapshotOutput, "tauri_debug_snapshot_"),
       10_000,
     );
   });

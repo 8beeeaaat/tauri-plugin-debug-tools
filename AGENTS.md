@@ -50,7 +50,7 @@ tauri-plugin-debug-tools/
 - **Stack Trace Normalization**: Filters internal frames
 - **Zero Dependencies**: No Safari DevTools required
 
-**Key Design Decision**: Logs are collected in-memory on the frontend and periodically flushed to `/tmp/tauri_console_logs.jsonl` via Tauri IPC. This avoids blocking the main thread and provides resilience against IPC failures.
+**Key Design Decision**: Logs are collected in-memory on the frontend and periodically flushed to the system temp directory (for example, `/tmp/tauri_console_logs.jsonl`) via Tauri IPC. This avoids blocking the main thread and provides resilience against IPC failures.
 
 ### 2. Event-Based Debug Commands
 
@@ -266,7 +266,7 @@ When making changes, verify:
 - [ ] Plugin registers in host app without errors
 - [ ] IPC commands return expected results
 - [ ] Console logger captures logs correctly
-- [ ] Logs flush to `/tmp/tauri_console_logs.jsonl`
+- [ ] Logs flush to system temp dir (for example, `/tmp/tauri_console_logs.jsonl`)
 - [ ] Agent skill can be invoked (`/debug-tauri`)
 - [ ] Screenshot capture works (macOS)
 

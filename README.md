@@ -44,7 +44,21 @@ fn main() {
 }
 ```
 
-**2. Enable permissions** in `src-tauri/capabilities/default.json`:
+**2. Configure the plugin (optional)** in your `tauri.conf.json` if you want to override defaults:
+
+```json
+{
+    "plugins": {
+        "debug-tools": {
+            "timeout": 30
+        }
+    }
+}
+```
+
+If you don't need custom configuration, you can omit this section.
+
+**3. Enable permissions** in `src-tauri/capabilities/default.json`:
 
 ```json
 {
@@ -54,7 +68,7 @@ fn main() {
 }
 ```
 
-**3. Initialize frontend logger** in your app entry point:
+    **4. Initialize frontend logger** in your app entry point:
 
 ```typescript
 // src/main.ts or src/App.tsx
@@ -125,9 +139,9 @@ All commands are available through the Tauri IPC system:
 | `capture_webview_state` | Capture WebView state | `WebViewState` JSON |
 | `get_console_logs` | Legacy console logs | Empty array (use frontend logger) |
 | `send_debug_command` | Send event to frontend | Success message |
-| `append_debug_logs` | Append logs to file | `/tmp/tauri_console_logs.jsonl` |
+| `append_debug_logs` | Append logs to file | System temp dir (e.g., `/tmp/tauri_console_logs.jsonl`) |
 | `reset_debug_logs` | Clear log file | File path |
-| `write_debug_snapshot` | Save debug snapshot | `/tmp/tauri_debug_snapshot_*.json` |
+| `write_debug_snapshot` | Save debug snapshot | System temp dir (e.g., `/tmp/tauri_debug_snapshot_*.json`) |
 
 ## AI Agent Skill
 
@@ -219,7 +233,7 @@ flowchart TB
             CL -->|"Batch flush"| Plugin
         end
 
-        FS["File System<br/>/tmp/tauri_console_logs.jsonl<br/>/tmp/tauri_debug_snapshot_*.json<br/>/tmp/tauri_debug_*.png"]
+        FS["File System<br/>Temp dir (logs & snapshots)<br/>e.g., /tmp/tauri_console_logs.jsonl"]
 
         Plugin -->|"Write logs & snapshots"| FS
     end
@@ -267,10 +281,8 @@ npm run format
 ## Platform Support
 
 - ✅ macOS (tested)
-- ⚠️ Windows (log paths may need adjustment)
-- ⚠️ Linux (log paths may need adjustment)
-
-For cross-platform log file paths, consider modifying `src/commands.rs` to use `std::env::temp_dir()`.
+- ⚠️ Windows (uses system temp directory for logs/snapshots)
+- ⚠️ Linux (uses system temp directory for logs/snapshots)
 
 ## License
 
