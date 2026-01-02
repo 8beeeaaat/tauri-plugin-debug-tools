@@ -61,9 +61,12 @@
     "dist-js",
     "guest-js",
     "permissions",
+    "skills",
+    "examples",
     "src",
     "LICENSE",
-    "README.md"
+    "README.md",
+    "AGENTS.md"
   ],
   "dependencies": {
     "@tauri-apps/api": "^2.9.1",
