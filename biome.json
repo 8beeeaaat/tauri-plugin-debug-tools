@@ -7,7 +7,7 @@
   },
   "files": {
     "ignoreUnknown": false,
-    "includes": ["**", "!examples/src-tauri/target"]
+    "includes": ["**", "!target", "!examples/src-tauri/target"]
   },
   "formatter": {
     "enabled": true,
