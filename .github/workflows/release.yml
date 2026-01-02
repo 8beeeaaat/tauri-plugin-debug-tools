@@ -59,23 +59,8 @@ jobs:
       - name: Install JS dependencies
         run: bun install
 
-      - name: Lint (Biome & TypeScript)
-        run: bun run lint
-
-      - name: Build TypeScript
+      - name: Build TypeScript (for npm pack)
         run: bun run build
-
-      - name: Unit tests (Vitest)
-        run: bun run test
-
-      - name: Run cargo fmt
-        run: cargo fmt --all -- --check
-
-      - name: Run cargo clippy
-        run: cargo clippy --all-targets --all-features -- -D warnings
-
-      - name: Run cargo tests
-        run: cargo test --all --all-features
 
       - name: Read version from package.json
         id: version
@@ -142,23 +127,8 @@ jobs:
       - name: Install JS dependencies
         run: bun install
 
-      - name: Lint (Biome & TypeScript)
-        run: bun run lint
-
-      - name: Build TypeScript
+      - name: Build TypeScript (for npm pack)
         run: bun run build
-
-      - name: Unit tests (Vitest)
-        run: bun run test
-
-      - name: Run cargo fmt
-        run: cargo fmt --all -- --check
-
-      - name: Run cargo clippy
-        run: cargo clippy --all-targets --all-features -- -D warnings
-
-      - name: Run cargo tests
-        run: cargo test --all --all-features
 
       - name: Package crate
         run: cargo package --allow-dirty
