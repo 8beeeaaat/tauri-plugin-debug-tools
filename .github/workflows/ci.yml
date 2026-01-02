@@ -16,6 +16,8 @@ env:
 jobs:
   lint-and-test:
     runs-on: ubuntu-latest
+    env:
+      PKG_CONFIG_PATH: /usr/lib/x86_64-linux-gnu/pkgconfig
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -29,7 +31,8 @@ jobs:
       - name: Install system deps (GTK/WebKit/PKG-CONFIG)
         run: |
           sudo apt-get update
-          sudo apt-get install -y \
+          sudo apt-get install -y --no-install-recommends \
+            build-essential \
             pkg-config \
             libglib2.0-dev \
             libgtk-3-dev \
