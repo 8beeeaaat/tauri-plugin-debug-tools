@@ -33,7 +33,7 @@ appium driver list --installed
 
 1. `bun run build`
 2. `appium`
-3. `bun run e2e:mac`
+3. `bun run e2e`
 
 If needed, override the Appium URL via `APPIUM_SERVER_URL`.
 
