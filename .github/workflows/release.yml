@@ -34,7 +34,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          registry-url: https://registry.npmjs.org
 
       - uses: oven-sh/setup-bun@v1
         with:
@@ -102,7 +101,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          registry-url: https://registry.npmjs.org
 
       - uses: oven-sh/setup-bun@v1
         with:
@@ -164,7 +162,7 @@ jobs:
       - name: Publish npm package
         env:
           NPM_CONFIG_PROVENANCE: true
-        run: npm publish tauri-plugin-debug-tools-*.tgz --provenance
+        run: npm publish tauri-plugin-debug-tools-*.tgz --provenance --access public --registry https://registry.npmjs.org/
 
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2
