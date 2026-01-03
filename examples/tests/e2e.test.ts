@@ -107,14 +107,14 @@ suite("Tauri E2E (tauri-driver)", () => {
     const resetLogs = await driver.findElement(By.id("debug-reset-logs"));
     await resetLogs.click();
     await driver.wait(
-      until.elementTextContains(logsOutput, "tauri_console_logs.jsonl"),
+      until.elementTextContains(logsOutput, "tauri_console_logs_"),
       10_000,
     );
 
     const appendLogs = await driver.findElement(By.id("debug-append-logs"));
     await appendLogs.click();
     await driver.wait(
-      until.elementTextContains(logsOutput, "tauri_console_logs.jsonl"),
+      until.elementTextContains(logsOutput, "tauri_console_logs_"),
       10_000,
     );
 

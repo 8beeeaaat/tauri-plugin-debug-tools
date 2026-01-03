@@ -98,8 +98,9 @@ fi
 # Check for legacy log file
 echo ""
 echo "📝 Legacy Logs (consoleLogger):"
-if [ -f "/tmp/tauri_console_logs.jsonl" ]; then
-  log_size=$(wc -l < /tmp/tauri_console_logs.jsonl | tr -d ' ')
+if compgen -G "/tmp/tauri_console_logs_*.jsonl" > /dev/null; then
+  log_file=$(ls -t /tmp/tauri_console_logs_*.jsonl 2>/dev/null | head -1)
+  log_size=$(wc -l < "$log_file" | tr -d ' ')
   echo "  ⚠️  Legacy log file exists ($log_size lines)"
   echo "  💡 Migrate to tauri-plugin-log for better persistence"
 else

@@ -66,7 +66,7 @@ initConsoleLogger();
 **Option 2**: Check log file exists
 
 ```bash
-ls -lh /tmp/tauri_console_logs.jsonl
+ls -lh /tmp/tauri_console_logs_*.jsonl
 ```
 
 **Option 3**: Use IPC method
@@ -140,5 +140,5 @@ If issues persist:
 
 **Log output:**
 
-- `/tmp/tauri_console_logs.jsonl` (default)
+- `/tmp/tauri_console_logs_[app_name]_[pid].jsonl`
 - `/tmp/tauri_debug_*.png` (screenshots)

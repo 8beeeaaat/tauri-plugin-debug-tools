@@ -139,9 +139,32 @@ All commands are available through the Tauri IPC system:
 | `capture_webview_state` | Capture WebView state | `WebViewState` JSON |
 | `get_console_logs` | Legacy console logs | Empty array (use frontend logger) |
 | `send_debug_command` | Send event to frontend | Success message |
-| `append_debug_logs` | Append logs to file | System temp dir (e.g., `/tmp/tauri_console_logs.jsonl`) |
-| `reset_debug_logs` | Clear log file | File path |
-| `write_debug_snapshot` | Save debug snapshot | System temp dir (e.g., `/tmp/tauri_debug_snapshot_*.json`) |
+| `append_debug_logs` | Append logs to file | Returns actual file path string |
+| `reset_debug_logs` | Clear log file | Returns actual file path string |
+| `write_debug_snapshot` | Save debug snapshot | Returns actual file path string |
+
+#### Finding Log File Locations
+
+Both `reset_debug_logs` and `append_debug_logs` commands return the actual file path where logs are stored:
+
+```typescript
+import { invoke } from '@tauri-apps/api/core';
+
+// Get log file path
+const logPath = await invoke('plugin:debug-tools|reset_debug_logs');
+console.log('Logs are stored at:', logPath);
+// Example output: "/tmp/tauri_console_logs_hoge_12345.jsonl"
+```
+
+**Platform-specific locations:**
+
+- **macOS**: `/tmp/tauri_console_logs_[app_name]_[pid].jsonl`
+- **Linux**: `/tmp/tauri_console_logs_[app_name]_[pid].jsonl`
+- **Windows**: `%TEMP%\tauri_console_logs_[app_name]_[pid].jsonl` (e.g., `C:\Users\...\AppData\Local\Temp\`)
+
+Where `[app_name]` is the application name from `package_info` and `[pid]` is the process ID.
+
+The exact path is determined by Rust's `std::env::temp_dir()` and may vary between systems.
 
 ## AI Agent Skill
 
@@ -233,7 +256,7 @@ flowchart TB
             CL -->|"Batch flush"| Plugin
         end
 
-        FS["File System<br/>Temp dir (logs & snapshots)<br/>e.g., /tmp/tauri_console_logs.jsonl"]
+        FS["File System<br/>Temp dir (logs & snapshots)<br/>e.g., /tmp/tauri_console_logs_app_12345.jsonl"]
 
         Plugin -->|"Write logs & snapshots"| FS
     end

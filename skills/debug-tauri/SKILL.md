@@ -55,7 +55,39 @@ const imagePath = await captureMainWindow();
 
 ### Step 3: Collect Console Logs
 
-**Automatic Collection (Recommended)**:
+**Console Logger (Frontend - Recommended)**:
+
+The `consoleLogger` automatically collects frontend logs and errors in a ring buffer and flushes them to a temp file.
+
+```typescript
+// Import at app entry point to initialize automatic collection
+import "tauri-plugin-debug-tools/consoleLogger";
+
+// Use debugTools for explicit logging
+import { debugTools } from "tauri-plugin-debug-tools/consoleLogger";
+debugTools.log("App started");
+debugTools.error("Something went wrong");
+```
+
+**Finding consoleLogger Log Files**:
+
+```typescript
+import { invoke } from '@tauri-apps/api/core';
+
+// Get actual log file path
+const logPath = await invoke('plugin:debug-tools|reset_debug_logs');
+console.log('Console logs stored at:', logPath);
+```
+
+**Platform-specific consoleLogger locations**:
+
+- **macOS**: `/tmp/tauri_console_logs_[app_name]_[pid].jsonl`
+- **Linux**: `/tmp/tauri_console_logs_[app_name]_[pid].jsonl`
+- **Windows**: `%TEMP%\tauri_console_logs_[app_name]_[pid].jsonl`
+
+Where `[app_name]` is the application name and `[pid]` is the process ID.
+
+**Backend Logs (tauri-plugin-log)**:
 
 ```typescript
 import { logger } from "tauri-plugin-debug-tools/logAdapter";
@@ -68,7 +100,7 @@ logger.info("App started");
 logger.error("Something went wrong");
 ```
 
-**Log Locations**:
+**Backend log locations**:
 
 - **macOS**: `~/Library/Logs/{bundle_id}/debug.log`
 - **Linux**: `~/.local/share/{bundle_id}/logs/debug.log`

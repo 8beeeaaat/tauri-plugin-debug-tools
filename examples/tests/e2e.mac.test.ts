@@ -175,7 +175,7 @@ suite("Tauri E2E (Appium Mac2)", () => {
         throw new Error("debug-reset-logs not found");
       }
       await resetLogs.click();
-      await waitForSourceIncludes("tauri_console_logs.jsonl", 20_000);
+      await waitForSourceIncludes("tauri_console_logs_", 20_000);
 
       const appendLogs = await waitForLocator(
         "debug-append-logs",
@@ -185,7 +185,7 @@ suite("Tauri E2E (Appium Mac2)", () => {
         throw new Error("debug-append-logs not found");
       }
       await appendLogs.click();
-      await waitForSourceIncludes("tauri_console_logs.jsonl", 20_000);
+      await waitForSourceIncludes("tauri_console_logs_", 20_000);
 
       const snapshot = await waitForLocator(
         "debug-write-snapshot",

@@ -32,9 +32,18 @@ pub struct ConsoleLogEntryPayload {
     pub stack_trace: Option<String>,
 }
 
-fn console_log_path() -> PathBuf {
-    // Use platform temp directory to avoid hardcoded /tmp paths.
-    std::env::temp_dir().join("tauri_console_logs.jsonl")
+fn console_log_path<R: Runtime>(app: &AppHandle<R>) -> PathBuf {
+    // Get application name from AppHandle
+    let app_name = app.package_info().name.replace(" ", "_");
+    // Get current process ID
+    let pid = std::process::id();
+    // Use /tmp on Unix-like systems, temp_dir() on Windows
+    #[cfg(unix)]
+    let base_dir = PathBuf::from("/tmp");
+    #[cfg(not(unix))]
+    let base_dir = std::env::temp_dir();
+
+    base_dir.join(format!("tauri_console_logs_{}_{}.jsonl", app_name, pid))
 }
 
 /// Get WebView state.
@@ -97,12 +106,15 @@ pub async fn send_debug_command<R: Runtime>(
 
 /// Append console logs to /tmp.
 #[tauri::command]
-pub async fn append_debug_logs(logs: Vec<ConsoleLogEntryPayload>) -> Result<String, String> {
+pub async fn append_debug_logs<R: Runtime>(
+    app: AppHandle<R>,
+    logs: Vec<ConsoleLogEntryPayload>,
+) -> Result<String, String> {
     if logs.is_empty() {
         return Ok("no logs".to_string());
     }
 
-    let path = console_log_path();
+    let path = console_log_path(&app);
     let mut file = std::fs::OpenOptions::new()
         .create(true)
         .append(true)
@@ -121,8 +133,8 @@ pub async fn append_debug_logs(logs: Vec<ConsoleLogEntryPayload>) -> Result<Stri
 
 /// Reset the console log file.
 #[tauri::command]
-pub async fn reset_debug_logs() -> Result<String, String> {
-    let path = console_log_path();
+pub async fn reset_debug_logs<R: Runtime>(app: AppHandle<R>) -> Result<String, String> {
+    let path = console_log_path(&app);
     std::fs::OpenOptions::new()
         .create(true)
         .write(true)

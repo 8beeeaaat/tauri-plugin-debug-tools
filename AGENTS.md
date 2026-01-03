@@ -50,7 +50,7 @@ tauri-plugin-debug-tools/
 - **Stack Trace Normalization**: Filters internal frames
 - **Zero Dependencies**: No Safari DevTools required
 
-**Key Design Decision**: Logs are collected in-memory on the frontend and periodically flushed to the system temp directory (for example, `/tmp/tauri_console_logs.jsonl`) via Tauri IPC. This avoids blocking the main thread and provides resilience against IPC failures.
+**Key Design Decision**: Logs are collected in-memory on the frontend and periodically flushed to `/tmp` directory (for example, `/tmp/tauri_console_logs_app_name_12345.jsonl`) via Tauri IPC. This avoids blocking the main thread and provides resilience against IPC failures.
 
 ### 2. Event-Based Debug Commands
 
@@ -212,7 +212,7 @@ For cross-platform support:
 ```rust
 // Use this instead of "/tmp/"
 let temp_dir = std::env::temp_dir();
-let log_path = temp_dir.join("tauri_console_logs.jsonl");
+let log_path = temp_dir.join(format!("tauri_console_logs_{}_{}.jsonl", app_name, pid));
 ```
 
 ### Performance Considerations
@@ -266,7 +266,7 @@ When making changes, verify:
 - [ ] Plugin registers in host app without errors
 - [ ] IPC commands return expected results
 - [ ] Console logger captures logs correctly
-- [ ] Logs flush to system temp dir (for example, `/tmp/tauri_console_logs.jsonl`)
+- [ ] Logs flush to `/tmp` (for example, `/tmp/tauri_console_logs_app_name_12345.jsonl`)
 - [ ] Agent skill can be invoked (`/debug-tauri`)
 - [ ] Screenshot capture works (macOS)
 
