@@ -90,6 +90,9 @@ jobs:
     needs: build-and-tag
     if: needs.build-and-tag.outputs.tag_created == 'true'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
     env:
       PKG_CONFIG_PATH: /usr/lib/x86_64-linux-gnu/pkgconfig
     steps:
@@ -101,6 +104,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+          registry-url: https://registry.npmjs.org
+          always-auth: false
+          cache: 'npm'
+
+      - name: Update npm to latest
+        run: npm install -g npm@latest
 
       - uses: oven-sh/setup-bun@v1
         with:
@@ -162,7 +171,7 @@ jobs:
       - name: Publish npm package
         env:
           NPM_CONFIG_PROVENANCE: true
-        run: npm publish tauri-plugin-debug-tools-*.tgz --provenance --access public --registry https://registry.npmjs.org/
+        run: npm publish
 
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2
