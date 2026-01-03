@@ -19,7 +19,7 @@ Add to your Tauri project's `Cargo.toml`:
 
 ```toml
 [dependencies]
-tauri-plugin-debug-tools = "0.1.0"
+tauri-plugin-debug-tools = "0.1.1"
 ```
 
 Install the frontend package:
