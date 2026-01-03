@@ -1,0 +1,24 @@
+.DS_Store
+.git
+.github
+.idea
+.vscode
+coverage
+dist
+examples/node_modules
+guest-js/**
+node_modules
+npm-debug.log*
+permissions/**
+src/**
+target
+tests
+yarn-error.log*
+
+# Keep published assets
+!dist-js/**
+!skills/**
+!examples/**
+!LICENSE
+!README.md
+!AGENTS.md
