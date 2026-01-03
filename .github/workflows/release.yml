@@ -91,7 +91,7 @@ jobs:
     if: needs.build-and-tag.outputs.tag_created == 'true'
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
       id-token: write
     env:
       PKG_CONFIG_PATH: /usr/lib/x86_64-linux-gnu/pkgconfig
@@ -150,6 +150,19 @@ jobs:
             echo "publish=true" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Check npm version already published
+        id: check-npm
+        env:
+          PKG_VERSION: ${{ needs.build-and-tag.outputs.version }}
+        run: |
+          PKG="tauri-plugin-debug-tools"
+          VERSION="$PKG_VERSION"
+          if npm view "${PKG}@${VERSION}" version >/dev/null 2>&1; then
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Package crate
         run: cargo package --allow-dirty
 
@@ -169,6 +182,7 @@ jobs:
         run: cargo publish --allow-dirty --token "$CARGO_REGISTRY_TOKEN"
 
       - name: Publish npm package
+        if: steps.check-npm.outputs.publish == 'true'
         env:
           NPM_CONFIG_PROVENANCE: false
         run: npm publish --access public --no-provenance
