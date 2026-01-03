@@ -170,8 +170,13 @@ jobs:
 
       - name: Publish npm package
         env:
-          NPM_CONFIG_PROVENANCE: true
-        run: npm publish
+          ENABLE_PROVENANCE: ${{ github.event.repository.private == false }}
+        run: |
+          if [ "$ENABLE_PROVENANCE" = "true" ]; then
+            npm publish --provenance --access public
+          else
+            npm publish --access public
+          fi
 
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2
