@@ -169,14 +169,7 @@ jobs:
         run: cargo publish --allow-dirty --token "$CARGO_REGISTRY_TOKEN"
 
       - name: Publish npm package
-        env:
-          ENABLE_PROVENANCE: ${{ github.event.repository.private == false }}
-        run: |
-          if [ "$ENABLE_PROVENANCE" = "true" ]; then
-            npm publish --provenance --access public
-          else
-            npm publish --access public
-          fi
+        run: npm publish --access public
 
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2
