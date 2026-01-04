@@ -1,6 +1,6 @@
 {
   "name": "tauri-plugin-debug-tools",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Comprehensive debug utilities for Tauri WebView applications with AI-powered automated debugging workflows",
   "license": "MIT OR Apache-2.0",
   "author": "8beeeaaat <8beeeaaat@gmail.com>",

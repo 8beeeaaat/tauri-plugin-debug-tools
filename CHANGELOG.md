@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.3] - 2026-01-04
+
+### Changed
+
+- Improved console logger initialization to display log file path in debug mode
+- Initialization message now shows the actual log file path when logger is ready
+- Moved initialization message from constructor to `resetLogsFile()` method for better timing
+
+### Technical
+
+- Added `logPath` property to `ConsoleLogCollector` class to store the log file path
+- Modified `resetLogsFile()` method to capture and display the path returned from `reset_debug_logs` command
+- Enhanced developer experience by providing immediate visibility into log file location
+
 ## [0.1.2] - 2026-01-03
 
 ### Fixed
