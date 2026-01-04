@@ -41,9 +41,6 @@ class ConsoleLogCollector {
 
     this.setupTauriReadyListener();
     this.setupErrorHandlers();
-    if (this.isDev()) {
-      console.info("[debug] console logger initialized");
-    }
   }
 
   private isDev(): boolean {
@@ -161,7 +158,12 @@ class ConsoleLogCollector {
     if (this.logsReset) return;
     this.logsReset = true;
     try {
-      await invoke("plugin:debug-tools|reset_debug_logs");
+      const path = await invoke<string>("plugin:debug-tools|reset_debug_logs");
+      if (this.isDev()) {
+        this.originalConsole.info(
+          `[debug] console logger initialized - log path: ${path}`,
+        );
+      }
     } catch (error) {
       this.originalConsole.error("[debug] reset logs failed", error);
     }
