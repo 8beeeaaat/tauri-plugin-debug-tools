@@ -26,11 +26,13 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
                 .build();
             let screenshots_plugin = tauri_plugin_screenshots::init();
 
-            let handle = app.app_handle().clone();
-            std::thread::spawn(move || {
-                let _ = handle.plugin(log_plugin);
-                let _ = handle.plugin(screenshots_plugin);
-            });
+            // Register plugins synchronously to ensure they're available
+            if let Err(e) = app.plugin(log_plugin) {
+                eprintln!("[debug-tools] Failed to register log plugin: {}", e);
+            }
+            if let Err(e) = app.plugin(screenshots_plugin) {
+                eprintln!("[debug-tools] Failed to register screenshots plugin: {}", e);
+            }
 
             // DEV-only HTTP trigger (e.g., GET http://127.0.0.1:39393/capture_screenshot)
             if cfg!(debug_assertions)

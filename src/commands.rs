@@ -226,12 +226,23 @@ fn handle_http_request<R: Runtime>(app: &AppHandle<R>, mut stream: TcpStream) {
     if path == "/capture_screenshot" {
         let payload = serde_json::json!({ "source": "http-trigger" });
         if let Some(window) = app.get_webview_window("main") {
-            let _ = window.emit("debug-command", ("capture_screenshot", payload));
-            write_http_response(
-                stream,
-                "200 OK",
-                "{\"ok\":true,\"message\":\"capture_screenshot sent\"}",
-            );
+            match window.emit("debug-command", ("capture_screenshot", payload)) {
+                Ok(_) => {
+                    write_http_response(
+                        stream,
+                        "200 OK",
+                        "{\"ok\":true,\"message\":\"capture_screenshot sent\"}",
+                    );
+                }
+                Err(e) => {
+                    let body = format!("{{\"ok\":false,\"error\":\"Failed to emit event: {}\"}}", e);
+                    write_http_response(
+                        stream,
+                        "500 Internal Server Error",
+                        &body,
+                    );
+                }
+            }
             return;
         }
         write_http_response(
@@ -355,12 +366,23 @@ fn handle_http_request<R: Runtime>(app: &AppHandle<R>, mut stream: TcpStream) {
         }
         let payload = serde_json::json!({});
         if let Some(window) = app.get_webview_window("main") {
-            let _ = window.emit("debug-command", (command, payload));
-            write_http_response(
-                stream,
-                "200 OK",
-                "{\"ok\":true,\"message\":\"debug command sent\"}",
-            );
+            match window.emit("debug-command", (command, payload)) {
+                Ok(_) => {
+                    write_http_response(
+                        stream,
+                        "200 OK",
+                        "{\"ok\":true,\"message\":\"debug command sent\"}",
+                    );
+                }
+                Err(e) => {
+                    let body = format!("{{\"ok\":false,\"error\":\"Failed to emit event: {}\"}}", e);
+                    write_http_response(
+                        stream,
+                        "500 Internal Server Error",
+                        &body,
+                    );
+                }
+            }
             return;
         }
         write_http_response(
@@ -468,6 +490,7 @@ pub async fn write_debug_snapshot(payload: serde_json::Value) -> Result<String, 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct DebugSnapshotResult {
     pub screenshot_path: Option<String>,
+    pub screenshot_error: Option<String>,
     pub webview_state: WebViewState,
     pub console_errors: Vec<String>,
     pub timestamp: u64,
@@ -498,7 +521,14 @@ pub async fn auto_capture_debug_snapshot<R: Runtime>(
     let console_errors = read_console_error_logs(&app)?;
 
     // Capture screenshot using tauri-plugin-screenshots
-    let screenshot_path = capture_screenshot_internal(&app).await;
+    let screenshot_result = capture_screenshot_internal(&app).await;
+    let (screenshot_path, screenshot_error) = match screenshot_result {
+        Ok(path) => (Some(path), None),
+        Err(err) => {
+            eprintln!("Screenshot capture failed: {}", err);
+            (None, Some(err))
+        }
+    };
 
     let timestamp = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
@@ -507,6 +537,7 @@ pub async fn auto_capture_debug_snapshot<R: Runtime>(
 
     Ok(DebugSnapshotResult {
         screenshot_path,
+        screenshot_error,
         webview_state,
         console_errors,
         timestamp,
@@ -514,21 +545,15 @@ pub async fn auto_capture_debug_snapshot<R: Runtime>(
 }
 
 /// Internal helper to capture screenshot from main window
-async fn capture_screenshot_internal<R: Runtime>(app: &AppHandle<R>) -> Option<String> {
+async fn capture_screenshot_internal<R: Runtime>(app: &AppHandle<R>) -> Result<String, String> {
     use tauri_plugin_screenshots::{get_screenshotable_windows, get_window_screenshot};
 
     // Get all available windows
-    let windows = match get_screenshotable_windows().await {
-        Ok(wins) => wins,
-        Err(e) => {
-            eprintln!("Failed to get screenshotable windows: {}", e);
-            return None;
-        }
-    };
+    let windows = get_screenshotable_windows().await
+        .map_err(|e| format!("Failed to get screenshotable windows: {}. Check system permissions.", e))?;
 
     if windows.is_empty() {
-        eprintln!("No screenshotable windows found");
-        return None;
+        return Err("No screenshotable windows found. Ensure the application window is visible.".to_string());
     }
 
     if let Ok(raw_id) = std::env::var("TAURI_DEBUG_SCREENSHOT_WINDOW_ID") {
@@ -538,15 +563,9 @@ async fn capture_screenshot_internal<R: Runtime>(app: &AppHandle<R>) -> Option<S
                     "Capturing screenshot of window override: id={}, name={}",
                     target.id, target.name
                 );
-                let screenshot_path =
-                    match get_window_screenshot(app.clone(), target.id).await {
-                        Ok(path) => path,
-                        Err(e) => {
-                            eprintln!("Failed to capture screenshot: {}", e);
-                            return None;
-                        }
-                    };
-                return Some(screenshot_path.to_string_lossy().to_string());
+                let screenshot_path = get_window_screenshot(app.clone(), target.id).await
+                    .map_err(|e| format!("Failed to capture window {}: {}. Check disk space and permissions.", target.id, e))?;
+                return Ok(screenshot_path.to_string_lossy().to_string());
             }
         }
     }
@@ -595,20 +614,16 @@ async fn capture_screenshot_internal<R: Runtime>(app: &AppHandle<R>) -> Option<S
             })
         })
         .or_else(|| windows.iter().find(|window| !is_system_window(window)))
-        .or_else(|| windows.first())?; // Final fallback
+        .or_else(|| windows.first())
+        .ok_or_else(|| "No suitable window found for screenshot".to_string())?;
 
     eprintln!("Capturing screenshot of window: id={}, name={}", target_window.id, target_window.name);
 
     // Capture screenshot using tauri-plugin-screenshots
-    let screenshot_path = match get_window_screenshot(app.clone(), target_window.id).await {
-        Ok(path) => path,
-        Err(e) => {
-            eprintln!("Failed to capture screenshot: {}", e);
-            return None;
-        }
-    };
+    let screenshot_path = get_window_screenshot(app.clone(), target_window.id).await
+        .map_err(|e| format!("Failed to capture window {}: {}. Check disk space and permissions.", target_window.id, e))?;
 
-    Some(screenshot_path.to_string_lossy().to_string())
+    Ok(screenshot_path.to_string_lossy().to_string())
 }
 
 /// Read recent console error logs from /tmp

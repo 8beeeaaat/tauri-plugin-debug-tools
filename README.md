@@ -215,6 +215,8 @@ All commands are available through the Tauri IPC system:
 
 ### CLI HTTP Trigger (AI Agent)
 
+> **⚠️ SECURITY WARNING**: The HTTP trigger server binds to `127.0.0.1:39393` without authentication. Any process on your machine can access debug endpoints including screenshots and console logs. **Only use in development environments**. Do not enable in production builds.
+
 Local-only HTTP trigger for agents and CLI tooling.
 Enabled automatically in debug builds, or by setting `TAURI_DEBUG_HTTP=1`.
 You can change the bind address with `TAURI_DEBUG_HTTP_ADDR` (default `127.0.0.1:39393`).
