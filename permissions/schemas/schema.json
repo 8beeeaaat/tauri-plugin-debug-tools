@@ -307,6 +307,30 @@
           "markdownDescription": "Denies the append_debug_logs command without any pre-configured scope."
         },
         {
+          "description": "Enables the auto_capture_debug_snapshot command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-auto-capture-debug-snapshot",
+          "markdownDescription": "Enables the auto_capture_debug_snapshot command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the auto_capture_debug_snapshot command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-auto-capture-debug-snapshot",
+          "markdownDescription": "Denies the auto_capture_debug_snapshot command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the capture_screenshot command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-capture-screenshot",
+          "markdownDescription": "Enables the capture_screenshot command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the capture_screenshot command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-capture-screenshot",
+          "markdownDescription": "Denies the capture_screenshot command without any pre-configured scope."
+        },
+        {
           "description": "Enables the capture_webview_state command without any pre-configured scope.",
           "type": "string",
           "const": "allow-capture-webview-state",
@@ -373,10 +397,10 @@
           "markdownDescription": "Debug tools with official logging and screenshots"
         },
         {
-          "description": "Allows debug-tools commands for WebView inspection and log capture.\n\n#### Granted Permissions\n\nAll debug-tools commands are enabled by default.\n\n#### Note\n\nFor full functionality, also enable official plugins:\n- `log:default` for automatic console log collection\n- `screenshots:default` for cross-platform screenshot capture\n\n\n#### This default permission set includes:\n\n- `allow-capture-webview-state`\n- `allow-get-console-logs`\n- `allow-send-debug-command`\n- `allow-append-debug-logs`\n- `allow-reset-debug-logs`\n- `allow-write-debug-snapshot`",
+          "description": "Allows debug-tools commands for WebView inspection and log capture.\n\n#### Granted Permissions\n\nAll debug-tools commands are enabled by default.\n\n#### Note\n\nFor full functionality, also enable official plugins:\n- `log:default` for automatic console log collection\n- `screenshots:default` for cross-platform screenshot capture\n\n\n#### This default permission set includes:\n\n- `allow-capture-webview-state`\n- `allow-get-console-logs`\n- `allow-send-debug-command`\n- `allow-capture-screenshot`\n- `allow-append-debug-logs`\n- `allow-reset-debug-logs`\n- `allow-write-debug-snapshot`\n- `allow-auto-capture-debug-snapshot`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Allows debug-tools commands for WebView inspection and log capture.\n\n#### Granted Permissions\n\nAll debug-tools commands are enabled by default.\n\n#### Note\n\nFor full functionality, also enable official plugins:\n- `log:default` for automatic console log collection\n- `screenshots:default` for cross-platform screenshot capture\n\n\n#### This default permission set includes:\n\n- `allow-capture-webview-state`\n- `allow-get-console-logs`\n- `allow-send-debug-command`\n- `allow-append-debug-logs`\n- `allow-reset-debug-logs`\n- `allow-write-debug-snapshot`"
+          "markdownDescription": "Allows debug-tools commands for WebView inspection and log capture.\n\n#### Granted Permissions\n\nAll debug-tools commands are enabled by default.\n\n#### Note\n\nFor full functionality, also enable official plugins:\n- `log:default` for automatic console log collection\n- `screenshots:default` for cross-platform screenshot capture\n\n\n#### This default permission set includes:\n\n- `allow-capture-webview-state`\n- `allow-get-console-logs`\n- `allow-send-debug-command`\n- `allow-capture-screenshot`\n- `allow-append-debug-logs`\n- `allow-reset-debug-logs`\n- `allow-write-debug-snapshot`\n- `allow-auto-capture-debug-snapshot`"
         }
       ]
     }

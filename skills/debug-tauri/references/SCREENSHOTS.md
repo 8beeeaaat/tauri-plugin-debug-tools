@@ -9,7 +9,7 @@ Use `tauri-plugin-screenshots` for cross-platform screenshot capture.
 ```typescript
 import { captureMainWindow } from "tauri-plugin-debug-tools/screenshotHelper";
 
-// Capture main window as base64 PNG
+// Capture main window as a file path
 const screenshot = await captureMainWindow();
 if (screenshot) {
   console.log("Screenshot captured successfully");
@@ -20,7 +20,7 @@ if (screenshot) {
 
 #### captureMainWindow()
 
-Captures the first available window.
+Captures the first matching window (or the first available window if no matcher is provided).
 
 ```typescript
 import { captureMainWindow } from "tauri-plugin-debug-tools/screenshotHelper";
@@ -28,7 +28,30 @@ import { captureMainWindow } from "tauri-plugin-debug-tools/screenshotHelper";
 const imagePath = await captureMainWindow();
 ```
 
-**Returns**: `string | null` - Base64 PNG data or null if no windows
+**Returns**: `string | null` - Screenshot file path or null if no windows
+
+**Note**: The OS window list may include system UI or unrelated apps first.
+If you see blank/incorrect screenshots, use a matcher or capture by window ID.
+
+```typescript
+import { captureMainWindow } from "tauri-plugin-debug-tools/screenshotHelper";
+
+const imagePath = await captureMainWindow({
+  appName: "<APP_NAME>",
+  title: "<WINDOW_TITLE>",
+});
+```
+
+Predicate matching:
+
+```typescript
+import { captureMainWindow } from "tauri-plugin-debug-tools/screenshotHelper";
+
+const imagePath = await captureMainWindow({
+  predicate: (window) =>
+    window.appName === "<APP_NAME>" && window.title.includes("<TITLE_PART>"),
+});
+```
 
 #### captureAllWindows()
 
@@ -40,7 +63,7 @@ import { captureAllWindows } from "tauri-plugin-debug-tools/screenshotHelper";
 const screenshots = await captureAllWindows();
 ```
 
-**Returns**: `string[]` - Array of base64 PNG data
+**Returns**: `string[]` - Array of screenshot file paths
 
 #### capturePrimaryMonitor()
 
@@ -52,7 +75,7 @@ import { capturePrimaryMonitor } from "tauri-plugin-debug-tools/screenshotHelper
 const monitorScreenshot = await capturePrimaryMonitor();
 ```
 
-**Returns**: `string | null` - Base64 PNG data or null if no monitors
+**Returns**: `string | null` - Screenshot file path or null if no monitors
 
 ### Advanced Usage
 
@@ -78,6 +101,28 @@ const monitors = await getScreenshotableMonitors();
 const monitorShot = await getMonitorScreenshot(monitors[0].id);
 ```
 
+### DevTools-Only (No ESM Import)
+
+Some WebView devtools consoles do not support ESM `import`. Use `invoke` directly:
+
+```typescript
+const windows = await window.__TAURI__.core.invoke(
+  "plugin:screenshots|get_screenshotable_windows",
+);
+
+const target = windows.find(
+  (window) => window.appName === "<APP_NAME>" && window.title === "<WINDOW_TITLE>",
+);
+
+if (target) {
+  const path = await window.__TAURI__.core.invoke(
+    "plugin:screenshots|get_window_screenshot",
+    { id: target.id },
+  );
+  console.log(path);
+}
+```
+
 ### Platform Support
 
 - ✅ **macOS**: Full support
@@ -94,56 +139,49 @@ Add to app capabilities:
 }
 ```
 
-## Legacy: macOS screencapture Command
-
-### Full Screen Capture
-
-```bash
-screencapture -x -T 0 /tmp/screenshot.png
-```
-
-**Options:**
-
-- `-x`: Disable sound
-- `-T <seconds>`: Delay time (0 = execute immediately)
-
-### Window Selection (Interactive)
-
-```bash
-screencapture -w /tmp/window_screenshot.png
-```
-
-User clicks to select the window.
-
-### Specific Process Window by ID
-
-```bash
-# Get window ID
-osascript -e 'tell application "System Events" to get unix id of first process whose name is "<app-binary-name>"'
-
-# Capture by ID
-screencapture -l <window-id> /tmp/tauri_window.png
-```
-
-### Automated Capture (Legacy)
-
-**Deprecated**: Use official plugin API instead.
-
-Legacy script for macOS only:
-
-```bash
-TAURI_APP_NAME=<your-app> scripts/capture.sh
-```
-
-This script:
-
-1. Verifies the app is running
-2. Captures a timestamped screenshot
-3. Returns the screenshot path
-
-**Migration**: Replace with `captureMainWindow()` from plugin API for cross-platform support.
-
 ## Troubleshooting
+
+### Screenshot Is Blank (Black/White/Empty)
+
+**Symptoms**: Captured image is black, white, or shows nothing.
+
+**Common causes**:
+
+- Target window is minimized, hidden, or not in the foreground
+- Permissions or window capture restrictions
+- Wrong window selected (system window captured instead)
+
+**Recommended checks**:
+
+1. Ensure the app window is visible and in the foreground
+2. Confirm permissions include `screenshots:default`
+3. Enumerate windows and capture by ID (avoid relying on "first window"):
+
+```bash
+curl http://127.0.0.1:39393/screenshotable_windows
+```
+
+```typescript
+import { getScreenshotableWindows, getWindowScreenshot } from "tauri-plugin-screenshots-api";
+
+const windows = await getScreenshotableWindows();
+// Select the correct window id
+const screenshot = await getWindowScreenshot(windows[0].id);
+```
+
+4. Force the target window ID for HTTP snapshot:
+
+```bash
+TAURI_DEBUG_SCREENSHOT_WINDOW_ID=12345 \
+curl http://127.0.0.1:39393/auto_capture_debug_snapshot
+```
+
+5. As a fallback, capture the primary monitor:
+
+```typescript
+import { capturePrimaryMonitor } from "tauri-plugin-debug-tools/screenshotHelper";
+const monitorScreenshot = await capturePrimaryMonitor();
+```
 
 ### Error: Screenshot Not Captured
 
@@ -190,4 +228,3 @@ Add-Type -AssemblyName System.Windows.Forms
 ## References
 
 - [tauri-plugin-screenshots Repository](https://github.com/ayangweb/tauri-plugin-screenshots)
-- [macOS screencapture man page](https://ss64.com/osx/screencapture.html) (legacy)

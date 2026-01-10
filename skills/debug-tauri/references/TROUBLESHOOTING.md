@@ -28,9 +28,7 @@ tauri dev
 
 **Verify process:**
 
-```bash
-TAURI_APP_NAME=<your-app> scripts/capture.sh
-```
+Use `pgrep -x "<app-binary-name>"` or `ps aux | grep "<app-binary-name>"`.
 
 ### Screenshot Capture Fails
 
@@ -58,9 +56,7 @@ scripts/validate_setup.sh
 **Option 1**: Ensure frontend logger is initialized
 
 ```typescript
-import { initConsoleLogger } from "tauri-plugin-debug-tools/consoleLogger";
-
-initConsoleLogger();
+import "tauri-plugin-debug-tools/consoleLogger";
 ```
 
 **Option 2**: Check log file exists
@@ -69,11 +65,7 @@ initConsoleLogger();
 ls -lh /tmp/tauri_console_logs_*.jsonl
 ```
 
-**Option 3**: Use IPC method
-
-```typescript
-const logs = await invoke("plugin:debug-tools|get_console_logs");
-```
+**Option 3**: Use `logger.initialize()` to attach console to the official plugin logs.
 
 ### WebView State Returns Null
 
@@ -140,5 +132,5 @@ If issues persist:
 
 **Log output:**
 
-- `/tmp/tauri_console_logs_[app_name]_[pid].jsonl`
-- `/tmp/tauri_debug_*.png` (screenshots)
+- `/tmp/tauri_console_logs_[app_name]_[pid].jsonl` (consoleLogger)
+- Screenshot file paths are returned by the screenshot APIs

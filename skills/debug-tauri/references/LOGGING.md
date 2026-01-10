@@ -23,7 +23,7 @@ detach();
 
 ## Configuration
 
-Plugin is pre-configured in `src/lib.rs` with the following settings:
+Example configuration (optional):
 
 ```rust
 tauri_plugin_log::Builder::new()

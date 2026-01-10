@@ -10,6 +10,7 @@ Comprehensive debug utilities for Tauri WebView applications with AI-powered aut
 - **AI Agent Skill** - Automated debugging workflow for AI agents
 - **Debug Snapshots** - Save comprehensive debug state to disk
 - **Event-based Communication** - Send debug commands to frontend via Tauri events
+- **Smart Log Filtering** - Automatically filters out verbose framework logs (tao TRACE logs)
 
 ## Quick Start
 
@@ -130,6 +131,74 @@ import { sendDebugCommand } from "tauri-plugin-debug-tools/debugBridge";
 await sendDebugCommand("refresh_state", { force: true });
 ```
 
+#### AI Agent Auto Debugging
+
+```typescript
+import { autoCaptureDebugSnapshot } from "tauri-plugin-debug-tools/debugBridge";
+
+// Automatically capture debug snapshot for AI agent
+// Includes screenshot, WebView state, and console errors
+// Rate-limited to 1 capture per second
+try {
+  const snapshot = await autoCaptureDebugSnapshot();
+  console.log("Screenshot saved to:", snapshot.screenshot_path);
+  console.log("Current URL:", snapshot.webview_state.url);
+  console.log("Errors found:", snapshot.console_errors);
+  console.log("Timestamp:", snapshot.timestamp);
+} catch (error) {
+  console.error("Failed to capture snapshot:", error);
+  // Error example: "Rate limit: Please wait 1 more seconds"
+}
+```
+
+#### Screenshot Targeting (Important)
+
+`captureMainWindow()` uses the first window returned by the OS screenshot API.
+If your app opens multiple windows (or macOS lists system UI first), this can capture
+the wrong window or an empty/minimized one. Prefer selecting the target window by
+`appName` / `title` and capture by ID.
+
+```typescript
+import { invoke } from "@tauri-apps/api/core";
+
+const windows = await invoke<
+  { id: number; name: string; title: string; appName: string }[]
+>("plugin:screenshots|get_screenshotable_windows");
+
+const target = windows.find(
+  (window) => window.appName === "<APP_NAME>" && window.title === "<WINDOW_TITLE>",
+);
+
+if (target) {
+  const path = await invoke<string>("plugin:screenshots|get_window_screenshot", {
+    id: target.id,
+  });
+  console.log("Screenshot saved:", path);
+}
+```
+
+You can also pass a matcher directly:
+
+```typescript
+import { captureMainWindow } from "tauri-plugin-debug-tools/screenshotHelper";
+
+const path = await captureMainWindow({
+  appName: "<APP_NAME>",
+  title: "<WINDOW_TITLE>",
+});
+```
+
+Predicate-based matching is also supported:
+
+```typescript
+import { captureMainWindow } from "tauri-plugin-debug-tools/screenshotHelper";
+
+const path = await captureMainWindow({
+  predicate: (window) =>
+    window.appName === "<APP_NAME>" && window.title.includes("<TITLE_PART>"),
+});
+```
+
 ### Backend Commands
 
 All commands are available through the Tauri IPC system:
@@ -142,6 +211,33 @@ All commands are available through the Tauri IPC system:
 | `append_debug_logs` | Append logs to file | Returns actual file path string |
 | `reset_debug_logs` | Clear log file | Returns actual file path string |
 | `write_debug_snapshot` | Save debug snapshot | Returns actual file path string |
+| `auto_capture_debug_snapshot` | Auto-capture debug snapshot for AI agents | `DebugSnapshotResult` JSON with screenshot, state, errors |
+
+### CLI HTTP Trigger (AI Agent)
+
+Local-only HTTP trigger for agents and CLI tooling.
+Enabled automatically in debug builds, or by setting `TAURI_DEBUG_HTTP=1`.
+You can change the bind address with `TAURI_DEBUG_HTTP_ADDR` (default `127.0.0.1:39393`).
+If the screenshot targets the wrong window, set `TAURI_DEBUG_SCREENSHOT_WINDOW_ID`
+to force a specific window ID.
+
+```bash
+# Custom bind address
+TAURI_DEBUG_HTTP_ADDR=127.0.0.1:40404 curl http://127.0.0.1:40404/health
+
+# Screenshot request
+curl http://127.0.0.1:39393/capture_screenshot
+
+# List screenshotable windows
+curl http://127.0.0.1:39393/screenshotable_windows
+
+# Force a specific window ID for screenshots
+TAURI_DEBUG_SCREENSHOT_WINDOW_ID=12345 \
+curl http://127.0.0.1:39393/auto_capture_debug_snapshot
+
+# Health check
+curl http://127.0.0.1:39393/health
+```
 
 #### Finding Log File Locations
 

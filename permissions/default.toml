@@ -20,7 +20,9 @@ permissions = [
   "allow-capture-webview-state",
   "allow-get-console-logs",
   "allow-send-debug-command",
+  "allow-capture-screenshot",
   "allow-append-debug-logs",
   "allow-reset-debug-logs",
   "allow-write-debug-snapshot",
+  "allow-auto-capture-debug-snapshot",
 ]
