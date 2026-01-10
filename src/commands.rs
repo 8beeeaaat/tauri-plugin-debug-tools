@@ -235,12 +235,9 @@ fn handle_http_request<R: Runtime>(app: &AppHandle<R>, mut stream: TcpStream) {
                     );
                 }
                 Err(e) => {
-                    let body = format!("{{\"ok\":false,\"error\":\"Failed to emit event: {}\"}}", e);
-                    write_http_response(
-                        stream,
-                        "500 Internal Server Error",
-                        &body,
-                    );
+                    let body =
+                        format!("{{\"ok\":false,\"error\":\"Failed to emit event: {}\"}}", e);
+                    write_http_response(stream, "500 Internal Server Error", &body);
                 }
             }
             return;
@@ -269,9 +266,8 @@ fn handle_http_request<R: Runtime>(app: &AppHandle<R>, mut stream: TcpStream) {
     }
 
     if path == "/screenshotable_windows" {
-        let result = tauri::async_runtime::block_on(
-            tauri_plugin_screenshots::get_screenshotable_windows(),
-        );
+        let result =
+            tauri::async_runtime::block_on(tauri_plugin_screenshots::get_screenshotable_windows());
         match result {
             Ok(windows) => {
                 let body = serde_json::json!({ "ok": true, "windows": windows });
@@ -375,12 +371,9 @@ fn handle_http_request<R: Runtime>(app: &AppHandle<R>, mut stream: TcpStream) {
                     );
                 }
                 Err(e) => {
-                    let body = format!("{{\"ok\":false,\"error\":\"Failed to emit event: {}\"}}", e);
-                    write_http_response(
-                        stream,
-                        "500 Internal Server Error",
-                        &body,
-                    );
+                    let body =
+                        format!("{{\"ok\":false,\"error\":\"Failed to emit event: {}\"}}", e);
+                    write_http_response(stream, "500 Internal Server Error", &body);
                 }
             }
             return;
@@ -393,12 +386,16 @@ fn handle_http_request<R: Runtime>(app: &AppHandle<R>, mut stream: TcpStream) {
         return;
     }
 
-    write_http_response(stream, "404 Not Found", "{\"ok\":false,\"error\":\"not found\"}");
+    write_http_response(
+        stream,
+        "404 Not Found",
+        "{\"ok\":false,\"error\":\"not found\"}",
+    );
 }
 
 pub fn start_http_trigger<R: Runtime>(app: AppHandle<R>) {
-    let addr = std::env::var("TAURI_DEBUG_HTTP_ADDR")
-        .unwrap_or_else(|_| "127.0.0.1:39393".to_string());
+    let addr =
+        std::env::var("TAURI_DEBUG_HTTP_ADDR").unwrap_or_else(|_| "127.0.0.1:39393".to_string());
     std::thread::spawn(move || {
         let listener = match TcpListener::bind(&addr) {
             Ok(listener) => listener,
@@ -549,11 +546,18 @@ async fn capture_screenshot_internal<R: Runtime>(app: &AppHandle<R>) -> Result<S
     use tauri_plugin_screenshots::{get_screenshotable_windows, get_window_screenshot};
 
     // Get all available windows
-    let windows = get_screenshotable_windows().await
-        .map_err(|e| format!("Failed to get screenshotable windows: {}. Check system permissions.", e))?;
+    let windows = get_screenshotable_windows().await.map_err(|e| {
+        format!(
+            "Failed to get screenshotable windows: {}. Check system permissions.",
+            e
+        )
+    })?;
 
     if windows.is_empty() {
-        return Err("No screenshotable windows found. Ensure the application window is visible.".to_string());
+        return Err(
+            "No screenshotable windows found. Ensure the application window is visible."
+                .to_string(),
+        );
     }
 
     if let Ok(raw_id) = std::env::var("TAURI_DEBUG_SCREENSHOT_WINDOW_ID") {
@@ -563,8 +567,14 @@ async fn capture_screenshot_internal<R: Runtime>(app: &AppHandle<R>) -> Result<S
                     "Capturing screenshot of window override: id={}, name={}",
                     target.id, target.name
                 );
-                let screenshot_path = get_window_screenshot(app.clone(), target.id).await
-                    .map_err(|e| format!("Failed to capture window {}: {}. Check disk space and permissions.", target.id, e))?;
+                let screenshot_path = get_window_screenshot(app.clone(), target.id)
+                    .await
+                    .map_err(|e| {
+                        format!(
+                            "Failed to capture window {}: {}. Check disk space and permissions.",
+                            target.id, e
+                        )
+                    })?;
                 return Ok(screenshot_path.to_string_lossy().to_string());
             }
         }
@@ -592,9 +602,7 @@ async fn capture_screenshot_internal<R: Runtime>(app: &AppHandle<R>) -> Result<S
     };
 
     let matches_candidate = |window: &tauri_plugin_screenshots::ScreenshotableWindow| {
-        candidate_names
-            .iter()
-            .any(|name| window.app_name == *name)
+        candidate_names.iter().any(|name| window.app_name == *name)
     };
 
     let target_window = windows
@@ -617,11 +625,20 @@ async fn capture_screenshot_internal<R: Runtime>(app: &AppHandle<R>) -> Result<S
         .or_else(|| windows.first())
         .ok_or_else(|| "No suitable window found for screenshot".to_string())?;
 
-    eprintln!("Capturing screenshot of window: id={}, name={}", target_window.id, target_window.name);
+    eprintln!(
+        "Capturing screenshot of window: id={}, name={}",
+        target_window.id, target_window.name
+    );
 
     // Capture screenshot using tauri-plugin-screenshots
-    let screenshot_path = get_window_screenshot(app.clone(), target_window.id).await
-        .map_err(|e| format!("Failed to capture window {}: {}. Check disk space and permissions.", target_window.id, e))?;
+    let screenshot_path = get_window_screenshot(app.clone(), target_window.id)
+        .await
+        .map_err(|e| {
+            format!(
+                "Failed to capture window {}: {}. Check disk space and permissions.",
+                target_window.id, e
+            )
+        })?;
 
     Ok(screenshot_path.to_string_lossy().to_string())
 }
@@ -634,8 +651,8 @@ fn read_console_error_logs<R: Runtime>(app: &AppHandle<R>) -> Result<Vec<String>
         return Ok(vec![]);
     }
 
-    let content = std::fs::read_to_string(&path)
-        .map_err(|e| format!("Failed to read log file: {}", e))?;
+    let content =
+        std::fs::read_to_string(&path).map_err(|e| format!("Failed to read log file: {}", e))?;
 
     Ok(parse_console_error_logs(&content))
 }
@@ -677,7 +694,10 @@ mod tests {
         assert_eq!(base, "/send_debug_command");
         assert_eq!(
             params,
-            vec![("command".to_string(), "ping".to_string()), ("foo".to_string(), "bar".to_string())]
+            vec![
+                ("command".to_string(), "ping".to_string()),
+                ("foo".to_string(), "bar".to_string())
+            ]
         );
     }
 

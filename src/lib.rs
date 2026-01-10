@@ -35,9 +35,7 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
             }
 
             // DEV-only HTTP trigger (e.g., GET http://127.0.0.1:39393/capture_screenshot)
-            if cfg!(debug_assertions)
-                || std::env::var("TAURI_DEBUG_HTTP").as_deref() == Ok("1")
-            {
+            if cfg!(debug_assertions) || std::env::var("TAURI_DEBUG_HTTP").as_deref() == Ok("1") {
                 commands::start_http_trigger(app.app_handle().clone());
             }
 
