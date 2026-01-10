@@ -128,4 +128,49 @@ suite("Tauri E2E (tauri-driver)", () => {
       10_000,
     );
   });
+
+  it("auto capture debug snapshot works", async () => {
+    const autoCapture = await driver.findElement(By.id("debug-auto-capture"));
+    await autoCapture.click();
+    const autoCaptureOutput = await driver.findElement(
+      By.id("debug-auto-capture-output"),
+    );
+
+    await driver.wait(
+      until.elementTextContains(autoCaptureOutput, "screenshot_path"),
+      10_000,
+    );
+
+    const outputText = await autoCaptureOutput.getText();
+    const result = JSON.parse(outputText);
+
+    assert.ok(result.screenshot_path, "screenshot_path should be present");
+    assert.ok(result.webview_state, "webview_state should be present");
+    assert.equal(
+      result.webview_state.title,
+      "Tauri App",
+      "webview title should match",
+    );
+    assert.ok(Array.isArray(result.console_errors), "console_errors should be an array");
+    assert.ok(result.timestamp, "timestamp should be present");
+  });
+
+  it("request screenshot works", async () => {
+    const screenshot = await driver.findElement(By.id("debug-screenshot"));
+    await screenshot.click();
+    const screenshotOutput = await driver.findElement(
+      By.id("debug-screenshot-output"),
+    );
+
+    await driver.wait(
+      until.elementTextContains(screenshotOutput, "tauri_screenshot_"),
+      10_000,
+    );
+
+    const outputText = await screenshotOutput.getText();
+    assert.ok(
+      outputText.includes(".png"),
+      "screenshot path should include .png extension",
+    );
+  });
 });
