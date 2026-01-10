@@ -4,6 +4,7 @@
  * Provides simplified screenshot capture utilities.
  */
 
+import type { ScreenshotableWindow } from "tauri-plugin-screenshots-api";
 import {
   getMonitorScreenshot,
   getScreenshotableMonitors,
@@ -11,8 +12,48 @@ import {
   getWindowScreenshot,
 } from "tauri-plugin-screenshots-api";
 
+export type ScreenshotWindowMatch = Readonly<{
+  appName?: string;
+  title?: string;
+  name?: string;
+  predicate?: (window: ScreenshotableWindow) => boolean;
+}>;
+
+const matchesWindowFields = (
+  window: ScreenshotableWindow | undefined,
+  match: ScreenshotWindowMatch,
+): boolean =>
+  !!window &&
+  (match.appName ? window.appName === match.appName : true) &&
+  (match.title ? window.title === match.title : true) &&
+  (match.name ? window.name === match.name : true);
+
+const selectScreenshotWindow = (
+  windows: readonly ScreenshotableWindow[],
+  match?: ScreenshotWindowMatch,
+): ScreenshotableWindow | null => {
+  if (windows.length === 0) return null;
+  if (!match) return windows[0] ?? null;
+
+  if (match.predicate) {
+    const matched = windows.find(match.predicate);
+    if (matched) return matched;
+  }
+
+  const byFields = windows.find((window) => matchesWindowFields(window, match));
+  if (byFields) return byFields;
+
+  return windows[0] ?? null;
+};
+
+// Test-only exports for branch coverage.
+export const __test__ = {
+  matchesWindowFields,
+  selectScreenshotWindow,
+};
+
 /**
- * Capture screenshot of the main (first) window
+ * Capture screenshot of the main window (optionally matched)
  *
  * @returns Path to saved screenshot, or null if no windows available
  *
@@ -23,8 +64,17 @@ import {
  *   console.log(`Screenshot saved: ${path}`);
  * }
  * ```
+ *
+ * ```typescript
+ * const path = await captureMainWindow({
+ *   appName: "MyApp",
+ *   title: "Main",
+ * });
+ * ```
  */
-export async function captureMainWindow(): Promise<string | null> {
+export async function captureMainWindow(
+  match?: ScreenshotWindowMatch,
+): Promise<string | null> {
   try {
     const windows = await getScreenshotableWindows();
 
@@ -33,7 +83,9 @@ export async function captureMainWindow(): Promise<string | null> {
       return null;
     }
 
-    return await getWindowScreenshot(windows[0].id);
+    const target = selectScreenshotWindow(windows, match);
+    if (!target) return null;
+    return await getWindowScreenshot(target.id);
   } catch (error) {
     console.error("Failed to capture main window:", error);
     return null;

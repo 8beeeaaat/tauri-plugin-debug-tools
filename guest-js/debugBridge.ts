@@ -91,3 +91,47 @@ export async function sendDebugCommand(
     payload,
   });
 }
+
+/**
+ * Request a screenshot from the frontend (agent-triggered).
+ */
+export async function requestScreenshot(
+  payload: Record<string, unknown> = {},
+): Promise<string> {
+  return await invoke<string>("plugin:debug-tools|capture_screenshot", {
+    payload,
+  });
+}
+
+export interface DebugSnapshotResult {
+  screenshot_path: string | null;
+  webview_state: WebViewState;
+  console_errors: string[];
+  timestamp: number;
+}
+
+/**
+ * Automatically capture a debug snapshot with screenshot for AI agent debugging.
+ * This includes screenshot, WebView state, and recent console errors.
+ * Rate-limited to prevent excessive captures (1 per second).
+ *
+ * @returns Debug snapshot with screenshot path, WebView state, and console errors
+ * @throws Error if rate limit is exceeded or capture fails
+ *
+ * @example
+ * ```typescript
+ * try {
+ *   const snapshot = await autoCaptureDebugSnapshot();
+ *   console.log("Screenshot saved to:", snapshot.screenshot_path);
+ *   console.log("Current URL:", snapshot.webview_state.url);
+ *   console.log("Errors found:", snapshot.console_errors);
+ * } catch (error) {
+ *   console.error("Failed to capture snapshot:", error);
+ * }
+ * ```
+ */
+export async function autoCaptureDebugSnapshot(): Promise<DebugSnapshotResult> {
+  return await invoke<DebugSnapshotResult>(
+    "plugin:debug-tools|auto_capture_debug_snapshot",
+  );
+}

@@ -104,17 +104,16 @@ import { sendDebugCommand } from "tauri-plugin-debug-tools/debugBridge";
 await sendDebugCommand("get_gpu_state", { includeBuffers: true });
 ```
 
-## Screenshot Commands (Deprecated)
+### capture_screenshot
 
-### take_screenshot
+Request a screenshot from the frontend (agent-triggered).
 
-**Status**: Deprecated. Use system `screencapture` command instead.
+**Usage:**
 
-**Error message:**
+```typescript
+import { requestScreenshot } from "tauri-plugin-debug-tools/debugBridge";
 
-```
-Use system screencapture command instead.
-Run: screencapture -x -T 0 /tmp/tauri_screenshot.png
+await requestScreenshot({ source: "agent" });
 ```
 
 See [SCREENSHOTS.md](SCREENSHOTS.md) for screenshot capture methods.

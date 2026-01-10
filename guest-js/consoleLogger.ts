@@ -125,11 +125,23 @@ class ConsoleLogCollector {
       return;
     }
     if (this.pendingLogs.length === 0) return;
-    const batch = this.pendingLogs.splice(0, this.pendingLogs.length);
+
+    // Create a copy to send, keep originals until success
+    const batch = [...this.pendingLogs];
+
     try {
       await invoke("plugin:debug-tools|append_debug_logs", { logs: batch });
+      // Only remove logs after successful send
+      this.pendingLogs.splice(0, batch.length);
     } catch (error) {
-      this.originalConsole.error("[debug] append logs failed", error);
+      // Keep logs for retry
+      this.originalConsole.error("[debug] append logs failed - will retry", {
+        error,
+        batchSize: batch.length,
+        remainingLogs: this.pendingLogs.length,
+      });
+      // Reschedule flush to retry later
+      this.scheduleFlush();
     }
   }
 

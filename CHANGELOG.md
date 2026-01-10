@@ -5,6 +5,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.4] - 2026-01-10
+
+### Added
+
+- **AI-Powered Auto Debug Snapshot**: New `autoCaptureDebugSnapshot()` command that automatically captures screenshot, WebView state, and console errors in a single call - perfect for AI agents
+- **Screenshot Capture API**: New `captureScreenshot()` command with customizable payload for flexible debugging workflows
+- **Smart Log Filtering**: Automatically filters out verbose framework logs (tao TRACE logs) for cleaner debug output
+- **Comprehensive Test Coverage**: Added extensive test suites with Vitest coverage reporting (95%+ coverage across all modules)
+
+### Changed
+
+- Enhanced Rust backend with new IPC commands: `auto_capture_debug_snapshot` and `capture_screenshot`
+- Improved screenshot helper with better error handling and rate limiting (1 capture per second)
+- Updated debug skill documentation with new AI agent workflow examples and HTTP debug server scripts
+- Reorganized skill references by removing outdated migration and reference docs
+
+### Technical
+
+- Added `debugBridge.test.ts` to test new debug commands and backend interactions
+- Added `screenshotHelper.test.ts` with comprehensive screenshot functionality tests
+- Added `logAdapter.test.ts` to verify logger proxy behavior
+- Configured Vitest with coverage thresholds: 95% lines, 95% functions, 95% branches, 95% statements
+- Updated build.rs to handle new command autogeneration
+- Enhanced permissions schema with new command definitions
+- Extended e2e.test.ts with comprehensive tests for new debug snapshot features
+- Tests validate JSON structure including `screenshot_path`, `webview_state`, `console_errors`, and `timestamp`
+- Linux/Windows E2E tests using tauri-driver (macOS Appium tests remain unchanged)
+
 ## [0.1.3] - 2026-01-04
 
 ### Changed

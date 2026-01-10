@@ -7,6 +7,8 @@ let debugWebviewOutputEl;
 let debugLogsOutputEl;
 let debugCommandOutputEl;
 let debugSnapshotOutputEl;
+let debugAutoCaptureOutputEl;
+let debugScreenshotOutputEl;
 
 async function greet() {
   // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
@@ -25,6 +27,10 @@ window.addEventListener("DOMContentLoaded", () => {
   debugLogsOutputEl = document.querySelector("#debug-logs-output");
   debugCommandOutputEl = document.querySelector("#debug-command-output");
   debugSnapshotOutputEl = document.querySelector("#debug-snapshot-output");
+  debugAutoCaptureOutputEl = document.querySelector(
+    "#debug-auto-capture-output",
+  );
+  debugScreenshotOutputEl = document.querySelector("#debug-screenshot-output");
 
   if (listen) {
     listen("debug-command", (event) => {
@@ -87,5 +93,23 @@ window.addEventListener("DOMContentLoaded", () => {
         payload: { source: "e2e", ok: true },
       });
       debugSnapshotOutputEl.textContent = String(path);
+    });
+
+  document
+    .querySelector("#debug-auto-capture")
+    .addEventListener("click", async () => {
+      const result = await invoke(
+        "plugin:debug-tools|auto_capture_debug_snapshot",
+      );
+      debugAutoCaptureOutputEl.textContent = JSON.stringify(result);
+    });
+
+  document
+    .querySelector("#debug-screenshot")
+    .addEventListener("click", async () => {
+      const path = await invoke("plugin:debug-tools|capture_screenshot", {
+        payload: { source: "e2e" },
+      });
+      debugScreenshotOutputEl.textContent = String(path);
     });
 });

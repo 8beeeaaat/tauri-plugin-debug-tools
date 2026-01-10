@@ -17,9 +17,11 @@ For full functionality, also enable official plugins:
 - `allow-capture-webview-state`
 - `allow-get-console-logs`
 - `allow-send-debug-command`
+- `allow-capture-screenshot`
 - `allow-append-debug-logs`
 - `allow-reset-debug-logs`
 - `allow-write-debug-snapshot`
+- `allow-auto-capture-debug-snapshot`
 
 ## Permission Table
 
@@ -52,6 +54,58 @@ Enables the append_debug_logs command without any pre-configured scope.
 <td>
 
 Denies the append_debug_logs command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`debug-tools:allow-auto-capture-debug-snapshot`
+
+</td>
+<td>
+
+Enables the auto_capture_debug_snapshot command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`debug-tools:deny-auto-capture-debug-snapshot`
+
+</td>
+<td>
+
+Denies the auto_capture_debug_snapshot command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`debug-tools:allow-capture-screenshot`
+
+</td>
+<td>
+
+Enables the capture_screenshot command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`debug-tools:deny-capture-screenshot`
+
+</td>
+<td>
+
+Denies the capture_screenshot command without any pre-configured scope.
 
 </td>
 </tr>
