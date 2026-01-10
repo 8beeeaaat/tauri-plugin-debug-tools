@@ -404,10 +404,8 @@ pub fn start_http_trigger<R: Runtime>(app: AppHandle<R>) {
                 return;
             }
         };
-        for stream in listener.incoming() {
-            if let Ok(stream) = stream {
-                handle_http_request(&app, stream);
-            }
+        for stream in listener.incoming().flatten() {
+            handle_http_request(&app, stream);
         }
     });
 }
@@ -602,7 +600,7 @@ async fn capture_screenshot_internal<R: Runtime>(app: &AppHandle<R>) -> Result<S
     };
 
     let matches_candidate = |window: &tauri_plugin_screenshots::ScreenshotableWindow| {
-        candidate_names.iter().any(|name| window.app_name == *name)
+        candidate_names.contains(&window.app_name)
     };
 
     let target_window = windows
