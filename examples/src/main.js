@@ -27,7 +27,9 @@ window.addEventListener("DOMContentLoaded", () => {
   debugLogsOutputEl = document.querySelector("#debug-logs-output");
   debugCommandOutputEl = document.querySelector("#debug-command-output");
   debugSnapshotOutputEl = document.querySelector("#debug-snapshot-output");
-  debugAutoCaptureOutputEl = document.querySelector("#debug-auto-capture-output");
+  debugAutoCaptureOutputEl = document.querySelector(
+    "#debug-auto-capture-output",
+  );
   debugScreenshotOutputEl = document.querySelector("#debug-screenshot-output");
 
   if (listen) {
@@ -96,7 +98,9 @@ window.addEventListener("DOMContentLoaded", () => {
   document
     .querySelector("#debug-auto-capture")
     .addEventListener("click", async () => {
-      const result = await invoke("plugin:debug-tools|auto_capture_debug_snapshot");
+      const result = await invoke(
+        "plugin:debug-tools|auto_capture_debug_snapshot",
+      );
       debugAutoCaptureOutputEl.textContent = JSON.stringify(result);
     });
 

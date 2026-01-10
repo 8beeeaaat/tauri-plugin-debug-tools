@@ -1,17 +1,16 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-
+import type { ConsoleLogEntry } from "../guest-js/consoleLogger";
 import {
   autoCaptureDebugSnapshot,
   captureWebViewState,
   clearConsoleLogs,
   getConsoleErrors,
-  getConsoleLogs,
   getConsoleLogStats,
+  getConsoleLogs,
   getRecentConsoleLogs,
   requestScreenshot,
   sendDebugCommand,
 } from "../guest-js/debugBridge";
-import type { ConsoleLogEntry } from "../guest-js/consoleLogger";
 
 const invokeMock = vi.fn();
 
@@ -62,7 +61,8 @@ describe("debugBridge", () => {
   });
 
   it("returns console logs when logger is available", () => {
-    const previousWindow = (globalThis as unknown as { window?: unknown }).window;
+    const previousWindow = (globalThis as unknown as { window?: unknown })
+      .window;
     const logs: ConsoleLogEntry[] = [
       {
         timestamp: 1,
@@ -101,7 +101,8 @@ describe("debugBridge", () => {
   });
 
   it("returns defaults when console logger is unavailable", () => {
-    const previousWindow = (globalThis as unknown as { window?: unknown }).window;
+    const previousWindow = (globalThis as unknown as { window?: unknown })
+      .window;
     (globalThis as unknown as { window?: unknown }).window = undefined;
     expect(getConsoleLogs()).toEqual([]);
     expect(getConsoleErrors()).toEqual([]);

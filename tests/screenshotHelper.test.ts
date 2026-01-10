@@ -1,10 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
+  __test__,
   captureAllWindows,
   captureMainWindow,
   capturePrimaryMonitor,
-  __test__,
   listMonitors,
   listWindows,
 } from "../guest-js/screenshotHelper";
@@ -20,7 +20,8 @@ vi.mock("tauri-plugin-screenshots-api", () => ({
   getWindowScreenshot: (...args: unknown[]) => getWindowScreenshotMock(...args),
   getScreenshotableMonitors: (...args: unknown[]) =>
     getScreenshotableMonitorsMock(...args),
-  getMonitorScreenshot: (...args: unknown[]) => getMonitorScreenshotMock(...args),
+  getMonitorScreenshot: (...args: unknown[]) =>
+    getMonitorScreenshotMock(...args),
 }));
 
 describe("screenshotHelper", () => {
@@ -33,7 +34,9 @@ describe("screenshotHelper", () => {
 
   it("captureMainWindow returns null when no windows", async () => {
     getScreenshotableWindowsMock.mockResolvedValueOnce([]);
-    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    const warnSpy = vi
+      .spyOn(console, "warn")
+      .mockImplementation(() => undefined);
     const result = await captureMainWindow();
     expect(result).toBeNull();
     expect(warnSpy).toHaveBeenCalledOnce();
@@ -141,7 +144,9 @@ describe("screenshotHelper", () => {
 
   it("capturePrimaryMonitor returns null when no monitors", async () => {
     getScreenshotableMonitorsMock.mockResolvedValueOnce([]);
-    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    const warnSpy = vi
+      .spyOn(console, "warn")
+      .mockImplementation(() => undefined);
     const result = await capturePrimaryMonitor();
     expect(result).toBeNull();
     expect(warnSpy).toHaveBeenCalledOnce();

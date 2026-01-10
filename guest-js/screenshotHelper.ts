@@ -4,13 +4,13 @@
  * Provides simplified screenshot capture utilities.
  */
 
+import type { ScreenshotableWindow } from "tauri-plugin-screenshots-api";
 import {
   getMonitorScreenshot,
   getScreenshotableMonitors,
   getScreenshotableWindows,
   getWindowScreenshot,
 } from "tauri-plugin-screenshots-api";
-import type { ScreenshotableWindow } from "tauri-plugin-screenshots-api";
 
 export type ScreenshotWindowMatch = Readonly<{
   appName?: string;

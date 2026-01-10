@@ -151,7 +151,10 @@ suite("Tauri E2E (tauri-driver)", () => {
       "Tauri App",
       "webview title should match",
     );
-    assert.ok(Array.isArray(result.console_errors), "console_errors should be an array");
+    assert.ok(
+      Array.isArray(result.console_errors),
+      "console_errors should be an array",
+    );
     assert.ok(result.timestamp, "timestamp should be present");
   });
 

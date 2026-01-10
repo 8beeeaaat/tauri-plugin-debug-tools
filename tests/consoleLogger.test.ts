@@ -85,7 +85,7 @@ describe("consoleLogger", () => {
   it("formats non-string arguments", () => {
     record("info", [{ hello: "world" }]);
     const logs = consoleLogger.getLogs();
-    expect(logs[0]?.message).toContain("{\"hello\":\"world\"}");
+    expect(logs[0]?.message).toContain('{"hello":"world"}');
   });
 
   it("formats Error arguments", () => {
@@ -108,11 +108,21 @@ describe("consoleLogger", () => {
   });
 
   it("debugTools and exports proxy to consoleLogger", () => {
-    const logSpy = vi.spyOn(consoleLogger, "log").mockImplementation(() => undefined);
-    const infoSpy = vi.spyOn(consoleLogger, "info").mockImplementation(() => undefined);
-    const warnSpy = vi.spyOn(consoleLogger, "warn").mockImplementation(() => undefined);
-    const errorSpy = vi.spyOn(consoleLogger, "error").mockImplementation(() => undefined);
-    const debugSpy = vi.spyOn(consoleLogger, "debug").mockImplementation(() => undefined);
+    const logSpy = vi
+      .spyOn(consoleLogger, "log")
+      .mockImplementation(() => undefined);
+    const infoSpy = vi
+      .spyOn(consoleLogger, "info")
+      .mockImplementation(() => undefined);
+    const warnSpy = vi
+      .spyOn(consoleLogger, "warn")
+      .mockImplementation(() => undefined);
+    const errorSpy = vi
+      .spyOn(consoleLogger, "error")
+      .mockImplementation(() => undefined);
+    const debugSpy = vi
+      .spyOn(consoleLogger, "debug")
+      .mockImplementation(() => undefined);
     const recordSpy = vi
       .spyOn(consoleLogger, "record")
       .mockImplementation(() => undefined);
@@ -161,14 +171,18 @@ describe("consoleLogger", () => {
 
     await logger.flushPending();
 
-    expect(invokeMock).toHaveBeenCalledWith("plugin:debug-tools|append_debug_logs", {
-      logs: expect.any(Array),
-    });
+    expect(invokeMock).toHaveBeenCalledWith(
+      "plugin:debug-tools|append_debug_logs",
+      {
+        logs: expect.any(Array),
+      },
+    );
   });
 
   it("schedules flush when tauri is not ready", async () => {
     const setTimeoutSpy = vi.fn(() => 1);
-    const previousWindow = (globalThis as unknown as { window?: unknown }).window;
+    const previousWindow = (globalThis as unknown as { window?: unknown })
+      .window;
     (globalThis as unknown as { window?: unknown }).window = {
       setTimeout: setTimeoutSpy,
       clearTimeout: vi.fn(),
@@ -196,7 +210,8 @@ describe("consoleLogger", () => {
       callbackCalled = true;
       return 1;
     });
-    const previousWindow = (globalThis as unknown as { window?: unknown }).window;
+    const previousWindow = (globalThis as unknown as { window?: unknown })
+      .window;
     (globalThis as unknown as { window?: unknown }).window = {
       setTimeout: setTimeoutSpy,
       clearTimeout: vi.fn(),
@@ -245,15 +260,20 @@ describe("consoleLogger", () => {
 
     await logger.resetLogsFile();
 
-    expect(invokeMock).toHaveBeenCalledWith("plugin:debug-tools|reset_debug_logs");
+    expect(invokeMock).toHaveBeenCalledWith(
+      "plugin:debug-tools|reset_debug_logs",
+    );
   });
 
   it("resetLogsFile handles invoke errors", async () => {
     vi.resetModules();
-    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const errorSpy = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => undefined);
     invokeMock.mockRejectedValueOnce(new Error("fail"));
 
-    const previousWindow = (globalThis as unknown as { window?: unknown }).window;
+    const previousWindow = (globalThis as unknown as { window?: unknown })
+      .window;
     (globalThis as unknown as { window?: unknown }).window = {
       addEventListener: vi.fn(),
       setTimeout: globalThis.setTimeout,
@@ -299,7 +319,8 @@ describe("consoleLogger", () => {
     const singleLine = "Error: boom";
     expect(logger.normalizeStack(singleLine)).toBe(singleLine);
 
-    const filtered = "Error\n    at consoleLogger (x)\n    at ConsoleLogCollector (y)";
+    const filtered =
+      "Error\n    at consoleLogger (x)\n    at ConsoleLogCollector (y)";
     expect(logger.normalizeStack(filtered)).toBe(filtered);
 
     const normal =
@@ -309,14 +330,20 @@ describe("consoleLogger", () => {
 
   it("handles error event payloads", async () => {
     vi.resetModules();
-    const handlers: Record<string, (event: { error?: Error; message?: string }) => void> =
-      {};
+    const handlers: Record<
+      string,
+      (event: { error?: Error; message?: string }) => void
+    > = {};
     const addEventListener = vi.fn(
-      (type: string, callback: (event: { error?: Error; message?: string }) => void) => {
+      (
+        type: string,
+        callback: (event: { error?: Error; message?: string }) => void,
+      ) => {
         handlers[type] = callback;
       },
     );
-    const previousWindow = (globalThis as unknown as { window?: unknown }).window;
+    const previousWindow = (globalThis as unknown as { window?: unknown })
+      .window;
     (globalThis as unknown as { window?: unknown }).window = {
       addEventListener,
       setTimeout: globalThis.setTimeout,
@@ -343,7 +370,8 @@ describe("consoleLogger", () => {
         handlers[type] = callback;
       },
     );
-    const previousWindow = (globalThis as unknown as { window?: unknown }).window;
+    const previousWindow = (globalThis as unknown as { window?: unknown })
+      .window;
     (globalThis as unknown as { window?: unknown }).window = {
       addEventListener,
       setTimeout: globalThis.setTimeout,
@@ -375,7 +403,8 @@ describe("consoleLogger", () => {
   it("handles tauri core ready immediately", async () => {
     vi.resetModules();
     const addEventListener = vi.fn();
-    const previousWindow = (globalThis as unknown as { window?: unknown }).window;
+    const previousWindow = (globalThis as unknown as { window?: unknown })
+      .window;
     (globalThis as unknown as { window?: unknown }).window = {
       __TAURI__: { core: {} },
       addEventListener,
@@ -389,7 +418,9 @@ describe("consoleLogger", () => {
       "tauri://ready",
       expect.any(Function),
     );
-    expect(invokeMock).toHaveBeenCalledWith("plugin:debug-tools|reset_debug_logs");
+    expect(invokeMock).toHaveBeenCalledWith(
+      "plugin:debug-tools|reset_debug_logs",
+    );
 
     (globalThis as unknown as { window?: unknown }).window = previousWindow;
   });
@@ -400,7 +431,8 @@ describe("consoleLogger", () => {
     const addEventListener = vi.fn((type: string, cb: () => void) => {
       handlers[type] = cb;
     });
-    const previousWindow = (globalThis as unknown as { window?: unknown }).window;
+    const previousWindow = (globalThis as unknown as { window?: unknown })
+      .window;
     (globalThis as unknown as { window?: unknown }).window = {
       addEventListener,
       setTimeout: globalThis.setTimeout,
