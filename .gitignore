@@ -22,3 +22,4 @@ examples/src-tauri/target
 #.idea/
 node_modules
 dist-js
+coverage
