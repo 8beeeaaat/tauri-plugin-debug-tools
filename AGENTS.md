@@ -50,7 +50,7 @@ tauri-plugin-debug-tools/
 - **Stack Trace Normalization**: Filters internal frames
 - **Zero Dependencies**: No Safari DevTools required
 
-**Key Design Decision**: Logs are collected in-memory on the frontend and periodically flushed to `/tmp` directory (for example, `/tmp/tauri_console_logs_app_name_12345.jsonl`) via Tauri IPC. This avoids blocking the main thread and provides resilience against IPC failures.
+**Key Design Decision**: Logs are collected in-memory on the frontend and periodically flushed to the host app's log directory (for example, `~/Library/Logs/<bundle-id>/debug-tools/frontend_console_app_name_12345.jsonl` on macOS) via Tauri IPC. This avoids blocking the main thread and provides resilience against IPC failures.
 
 ### 2. Event-Based Debug Commands
 
@@ -67,9 +67,19 @@ This approach:
 - Avoids dynamic code execution
 - Allows frontend handlers to process commands safely
 
-### 3. System Command Integration
+### 3. Screenshot Integration
 
-Screenshot functionality delegates to system commands (e.g., macOS `screencapture`) rather than implementing platform-specific capture logic. This reduces dependencies and leverages battle-tested tools.
+Screenshot capture uses `tauri-plugin-screenshots` for cross-platform support. Screenshots are saved to `app_data_dir/tauri-plugin-screenshots/` by that plugin; use `copy_screenshot_to_debug_dir` or the helper `captureMainWindowToDebugDir()` to copy them into `debug-tools/screenshots/` for unified log management.
+
+### 4. Startup Cleanup Scope
+
+`clear_debug_log_files_command` is intended for startup-time reset and currently targets:
+
+- Files under `.../debug-tools/` (for example `frontend_console_*.jsonl`, `rust_debug.log*`)
+- `.../debug-tools/dom_snapshots/`
+- `.../debug-tools/screenshots/`
+
+When using startup cleanup, host apps should recreate runtime artifacts (for example DOM snapshots) after initialization.
 
 ## Common Tasks
 
@@ -203,16 +213,18 @@ Since this is a Tauri plugin, testing requires a host Tauri application:
 
 ### Platform-Specific Code
 
-- **Log File Paths**: Currently hardcoded to `/tmp/` (Unix-like systems only)
+- **Log File Paths**: Determined by Tauri path APIs and host app configuration
 - **Screenshot**: Uses macOS `screencapture` command
 - **User-Agent**: Hardcoded to `"TauriWebView/2.0"` (TODO: fetch real UA)
 
 For cross-platform support:
 
 ```rust
-// Use this instead of "/tmp/"
-let temp_dir = std::env::temp_dir();
-let log_path = temp_dir.join(format!("tauri_console_logs_{}_{}.jsonl", app_name, pid));
+// Resolve from Tauri path APIs (host app aware)
+let app_log_dir = app.path().app_log_dir()?;
+let log_path = app_log_dir
+    .join("debug-tools")
+    .join(format!("frontend_console_{}_{}.jsonl", app_name, pid));
 ```
 
 ### Performance Considerations
@@ -266,9 +278,19 @@ When making changes, verify:
 - [ ] Plugin registers in host app without errors
 - [ ] IPC commands return expected results
 - [ ] Console logger captures logs correctly
-- [ ] Logs flush to `/tmp` (for example, `/tmp/tauri_console_logs_app_name_12345.jsonl`)
+- [ ] Logs flush to the path returned by `reset_debug_logs` / `append_debug_logs`
 - [ ] Agent skill can be invoked (`/debug-tauri`)
 - [ ] Screenshot capture works (macOS)
+
+### Autonomous Verification Loop
+
+When verifying plugin behavior in a host app:
+
+1. Start host app in dev mode
+2. Call `plugin:debug-tools|reset_debug_logs` and capture returned path
+3. Trigger known frontend log events (`info`, `warn`, `error`)
+4. Confirm appended JSONL entries in returned file path
+5. Re-run after changes and compare `error` count deltas
 
 ### Future: Automated Testing
 

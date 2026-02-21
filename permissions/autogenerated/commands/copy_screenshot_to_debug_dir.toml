@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-copy-screenshot-to-debug-dir"
+description = "Enables the copy_screenshot_to_debug_dir command without any pre-configured scope."
+commands.allow = ["copy_screenshot_to_debug_dir"]
+
+[[permission]]
+identifier = "deny-copy-screenshot-to-debug-dir"
+description = "Denies the copy_screenshot_to_debug_dir command without any pre-configured scope."
+commands.deny = ["copy_screenshot_to_debug_dir"]

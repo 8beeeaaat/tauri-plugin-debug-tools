@@ -22,5 +22,7 @@ permissions = [
   "allow-send-debug-command",
   "allow-append-debug-logs",
   "allow-reset-debug-logs",
+  "allow-clear-debug-log-files-command",
+  "allow-copy-screenshot-to-debug-dir",
   "allow-write-debug-snapshot",
 ]

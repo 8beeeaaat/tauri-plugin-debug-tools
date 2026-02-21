@@ -5,6 +5,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.4] - 2026-02-21
+
+### Added
+
+- **DOM Capture**: New `capture_dom_snapshot` and `capture_full_debug_state` commands for capturing DOM state
+- **Clear Debug Logs**: New `clear_debug_log_files_command` to delete/truncate debug log files at startup
+- **Screenshot Copy**: New `copy_screenshot_to_debug_dir` command to copy screenshots from `tauri-plugin-screenshots` output to `debug-tools/screenshots/`
+- **TypeScript helpers**:
+  - `captureDOMSnapshot()` in `domCapture.ts` for frontend DOM capture
+  - `clearDebugLogFiles()` in `debugBridge.ts` for clearing log files
+  - `copyScreenshotToDebugDir()` in `debugBridge.ts` for copying screenshots
+  - `captureMainWindowToDebugDir()` in `screenshotHelper.ts` for capture + copy in one step
+- **Log Directory API**: New `get_log_directory` command returning all debug-tools paths
+
+### Changed
+
+- **Log file location**: Changed from `/tmp/` to Tauri's `app_log_dir()/debug-tools/` for proper platform integration
+- **Documentation**: Updated AGENTS.md, README.md, and skill references with new commands and paths
+- **Architecture**: Refactored to clean architecture with adapters, domain, and application layers
+
+### Technical
+
+- Added `config.rs` for centralized configuration management
+- Added `adapters/filesystem.rs` for file system operations
+- Added `adapters/logging.rs` for tracing integration
+- Added `application/use_cases.rs` for business logic separation
+- Updated dependencies to latest versions
+
 ## [0.1.3] - 2026-01-04
 
 ### Changed

@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-clear-debug-log-files-command"
+description = "Enables the clear_debug_log_files_command command without any pre-configured scope."
+commands.allow = ["clear_debug_log_files_command"]
+
+[[permission]]
+identifier = "deny-clear-debug-log-files-command"
+description = "Denies the clear_debug_log_files_command command without any pre-configured scope."
+commands.deny = ["clear_debug_log_files_command"]
