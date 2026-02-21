@@ -81,6 +81,8 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
             commands::send_debug_command,
             commands::append_debug_logs,
             commands::reset_debug_logs,
+            commands::clear_debug_log_files_command,
+            commands::copy_screenshot_to_debug_dir,
             commands::write_debug_snapshot,
             commands::capture_dom_snapshot,
             commands::capture_full_debug_state,

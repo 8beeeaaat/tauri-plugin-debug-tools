@@ -17,6 +17,17 @@ export interface ConsoleMessage {
   timestamp: number;
 }
 
+export interface ClearDebugLogsResult {
+  deleted_paths: string[];
+  truncated_paths: string[];
+  failed_paths: string[];
+}
+
+export interface CopyScreenshotResult {
+  source_path: string;
+  destination_path: string;
+}
+
 /**
  * Get WebView state.
  */
@@ -90,4 +101,27 @@ export async function sendDebugCommand(
     command,
     payload,
   });
+}
+
+/**
+ * Clear frontend/backend debug log files for the current host app.
+ */
+export async function clearDebugLogFiles(): Promise<ClearDebugLogsResult> {
+  return await invoke<ClearDebugLogsResult>(
+    "plugin:debug-tools|clear_debug_log_files_command",
+  );
+}
+
+/**
+ * Copy a screenshot file to the debug-tools screenshots directory.
+ * @param sourcePath Path to the source screenshot file
+ * @returns Source and destination paths
+ */
+export async function copyScreenshotToDebugDir(
+  sourcePath: string,
+): Promise<CopyScreenshotResult> {
+  return await invoke<CopyScreenshotResult>(
+    "plugin:debug-tools|copy_screenshot_to_debug_dir",
+    { sourcePath },
+  );
 }

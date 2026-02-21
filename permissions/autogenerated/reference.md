@@ -19,6 +19,8 @@ For full functionality, also enable official plugins:
 - `allow-send-debug-command`
 - `allow-append-debug-logs`
 - `allow-reset-debug-logs`
+- `allow-clear-debug-log-files-command`
+- `allow-copy-screenshot-to-debug-dir`
 - `allow-write-debug-snapshot`
 
 ## Permission Table
@@ -130,6 +132,58 @@ Enables the capture_webview_state command without any pre-configured scope.
 <td>
 
 Denies the capture_webview_state command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`debug-tools:allow-clear-debug-log-files-command`
+
+</td>
+<td>
+
+Enables the clear_debug_log_files_command command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`debug-tools:deny-clear-debug-log-files-command`
+
+</td>
+<td>
+
+Denies the clear_debug_log_files_command command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`debug-tools:allow-copy-screenshot-to-debug-dir`
+
+</td>
+<td>
+
+Enables the copy_screenshot_to_debug_dir command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`debug-tools:deny-copy-screenshot-to-debug-dir`
+
+</td>
+<td>
+
+Denies the copy_screenshot_to_debug_dir command without any pre-configured scope.
 
 </td>
 </tr>

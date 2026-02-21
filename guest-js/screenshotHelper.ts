@@ -10,6 +10,7 @@ import {
   getScreenshotableWindows,
   getWindowScreenshot,
 } from "tauri-plugin-screenshots-api";
+import { copyScreenshotToDebugDir } from "./debugBridge";
 import { captureDOMSnapshot, type DomSnapshotResult } from "./domCapture";
 
 /**
@@ -139,6 +140,34 @@ export async function captureWithDOM(): Promise<{
     screenshot,
     domSnapshot,
   };
+}
+
+/**
+ * Capture screenshot of the main window and copy to debug-tools directory.
+ *
+ * @returns Path to the copied screenshot in debug-tools/screenshots/, or null if failed
+ *
+ * @example
+ * ```typescript
+ * const path = await captureMainWindowToDebugDir();
+ * if (path) {
+ *   console.log(`Screenshot saved to debug dir: ${path}`);
+ * }
+ * ```
+ */
+export async function captureMainWindowToDebugDir(): Promise<string | null> {
+  const sourcePath = await captureMainWindow();
+  if (!sourcePath) {
+    return null;
+  }
+
+  try {
+    const result = await copyScreenshotToDebugDir(sourcePath);
+    return result.destination_path;
+  } catch (error) {
+    console.error("Failed to copy screenshot to debug directory:", error);
+    return sourcePath;
+  }
 }
 
 // Re-export core functions for advanced usage

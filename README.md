@@ -141,7 +141,9 @@ All commands are available through the Tauri IPC system:
 | `send_debug_command` | Send event to frontend | Success message |
 | `append_debug_logs` | Append logs to file | Returns actual file path string |
 | `reset_debug_logs` | Clear log file | Returns actual file path string |
-| `write_debug_snapshot` | Save debug snapshot | Returns actual file path string |
+| `clear_debug_log_files_command` | Delete/truncate debug log files | `ClearDebugLogsResult` JSON |
+| `copy_screenshot_to_debug_dir` | Copy screenshot to debug-tools/screenshots | `CopyScreenshotResult` JSON |
+| `write_debug_snapshot` | Save debug snapshot (legacy, uses temp dir) | Returns actual file path string |
 
 #### Finding Log File Locations
 
@@ -153,18 +155,87 @@ import { invoke } from '@tauri-apps/api/core';
 // Get log file path
 const logPath = await invoke('plugin:debug-tools|reset_debug_logs');
 console.log('Logs are stored at:', logPath);
-// Example output: "/tmp/tauri_console_logs_hoge_12345.jsonl"
+// Example output: "/Users/you/Library/Logs/com.example.app/debug-tools/frontend_console_my_app_12345.jsonl"
 ```
 
-**Platform-specific locations:**
+**Typical locations:**
 
-- **macOS**: `/tmp/tauri_console_logs_[app_name]_[pid].jsonl`
-- **Linux**: `/tmp/tauri_console_logs_[app_name]_[pid].jsonl`
-- **Windows**: `%TEMP%\tauri_console_logs_[app_name]_[pid].jsonl` (e.g., `C:\Users\...\AppData\Local\Temp\`)
+- **macOS**: `~/Library/Logs/<bundle-id>/debug-tools/frontend_console_[app_name]_[pid].jsonl`
+- **Linux/Windows**: Application log directory resolved by Tauri path APIs
 
 Where `[app_name]` is the application name from `package_info` and `[pid]` is the process ID.
 
-The exact path is determined by Rust's `std::env::temp_dir()` and may vary between systems.
+The exact path can vary by host app configuration. Always use the path returned by `reset_debug_logs` / `append_debug_logs` as the source of truth.
+
+#### Clear Debug Log Files
+
+```typescript
+import { invoke } from '@tauri-apps/api/core';
+
+const result = await invoke('plugin:debug-tools|clear_debug_log_files_command');
+console.log(result);
+// {
+//   deleted_paths: [...],
+//   truncated_paths: [...],
+//   failed_paths: [...]
+// }
+```
+
+`clear_debug_log_files_command` cleans up files under the plugin log root (`.../debug-tools`) and these subdirectories when they exist:
+
+- `dom_snapshots/`
+- `screenshots/`
+
+Typical startup workflow in host apps:
+
+1. Call `clear_debug_log_files_command` once during app boot.
+2. Re-capture runtime artifacts (for example `capture_dom_snapshot`) after initialization.
+
+#### Live Monitoring (Recommended)
+
+```bash
+LOG_DIR="$HOME/Library/Logs/<bundle-id>/debug-tools"
+LATEST=$(ls -1t "$LOG_DIR"/frontend_console_*.jsonl | head -n 1)
+tail -f "$LATEST"
+```
+
+If you don't know the exact location, fetch it via IPC first:
+
+```bash
+# in your host app code, call once:
+# invoke('plugin:debug-tools|reset_debug_logs')
+# then monitor the returned absolute path
+```
+
+Filter error logs only:
+
+```bash
+grep -in '"level":"error"' "$LATEST"
+```
+
+#### Copy Screenshot to Debug Directory
+
+`tauri-plugin-screenshots` saves screenshots to `app_data_dir/tauri-plugin-screenshots/`. Use `copy_screenshot_to_debug_dir` to copy them into the unified debug-tools directory:
+
+```typescript
+import { captureMainWindowToDebugDir } from "tauri-plugin-debug-tools/screenshotHelper";
+
+// Capture and copy in one step
+const path = await captureMainWindowToDebugDir();
+console.log(path);
+// ~/Library/Logs/<bundle-id>/debug-tools/screenshots/1740145200_window-1.png
+```
+
+Or manually:
+
+```typescript
+import { invoke } from '@tauri-apps/api/core';
+
+const result = await invoke('plugin:debug-tools|copy_screenshot_to_debug_dir', {
+  sourcePath: '/path/to/screenshot.png'
+});
+console.log(result.destination_path);
+```
 
 ## AI Agent Skill
 
@@ -256,7 +327,7 @@ flowchart TB
             CL -->|"Batch flush"| Plugin
         end
 
-        FS["File System<br/>Temp dir (logs & snapshots)<br/>e.g., /tmp/tauri_console_logs_app_12345.jsonl"]
+        FS["File System<br/>App log directory (logs & snapshots)<br/>e.g., ~/Library/Logs/<bundle-id>/debug-tools/frontend_console_app_12345.jsonl"]
 
         Plugin -->|"Write logs & snapshots"| FS
     end
@@ -285,6 +356,16 @@ The plugin uses a sophisticated ring-buffer based logging system:
 - **Stack Traces**: Automatically captures and normalizes stack traces
 - **Zero Config**: No Safari DevTools required
 
+## Troubleshooting
+
+| Symptom | Check command | Action |
+| --- | --- | --- |
+| Logs are not being written | `invoke('plugin:debug-tools\|reset_debug_logs')` and verify returned path exists | Monitor the returned absolute path directly with `tail -f` |
+| `EADDRINUSE` when starting dev app | `lsof -tiTCP:5173 -sTCP:LISTEN \| xargs kill` | Kill the listed PID, then restart the host app |
+| IPC permission error (`denied` / `forbidden`) | Inspect `src-tauri/capabilities/*.json` | Add `"debug-tools:default"` and restart app |
+| Continuous `NetworkError` in logs | `grep -in '"level":"error"' "$LATEST"` and inspect API/auth logs | Fix host app API/auth state first (usually not plugin failure) |
+| Playback state error (`play() without pause()/stop()`) | `grep -in 'play()' "$LATEST"` | Fix host app playback state transition ordering |
+
 ## Development
 
 ```bash
@@ -304,8 +385,8 @@ npm run format
 ## Platform Support
 
 - ✅ macOS (tested)
-- ⚠️ Windows (uses system temp directory for logs/snapshots)
-- ⚠️ Linux (uses system temp directory for logs/snapshots)
+- ⚠️ Windows (log directory resolved by Tauri path APIs)
+- ⚠️ Linux (log directory resolved by Tauri path APIs)
 
 ## License
 

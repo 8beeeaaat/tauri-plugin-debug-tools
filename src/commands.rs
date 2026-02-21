@@ -1,4 +1,4 @@
-use crate::adapters::filesystem::reset_console_logs;
+use crate::adapters::filesystem::{clear_debug_log_files, reset_console_logs};
 use crate::application::CaptureWebViewStateUseCase;
 use crate::domain::{ConsoleLogEntry, DebugSnapshot, DomSnapshotResult, WebViewState};
 use crate::DebugToolsState;
@@ -37,6 +37,13 @@ pub struct LogDirectoryInfo {
     pub backend_log: String,
     pub screenshot_dir: String,
     pub dom_snapshot_dir: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ClearDebugLogsResult {
+    pub deleted_paths: Vec<String>,
+    pub truncated_paths: Vec<String>,
+    pub failed_paths: Vec<String>,
 }
 
 #[tauri::command]
@@ -110,6 +117,36 @@ pub async fn reset_debug_logs<R: Runtime>(app: AppHandle<R>) -> Result<String, S
         reset_console_logs(&state.config, &app_name, pid).map_err(|e| e.to_string())?;
 
     Ok(path.to_string_lossy().into_owned())
+}
+
+#[tauri::command]
+#[tracing::instrument(skip(app))]
+pub async fn clear_debug_log_files_command<R: Runtime>(
+    app: AppHandle<R>,
+) -> Result<ClearDebugLogsResult, String> {
+    let state: State<'_, DebugToolsState> = app.state();
+    let app_name = app.package_info().name.clone();
+
+    let report =
+        clear_debug_log_files(&state.config, &app_name).map_err(|e| e.to_string())?;
+
+    Ok(ClearDebugLogsResult {
+        deleted_paths: report
+            .deleted_paths
+            .into_iter()
+            .map(|path| path.to_string_lossy().into_owned())
+            .collect(),
+        truncated_paths: report
+            .truncated_paths
+            .into_iter()
+            .map(|path| path.to_string_lossy().into_owned())
+            .collect(),
+        failed_paths: report
+            .failed_paths
+            .into_iter()
+            .map(|path| path.to_string_lossy().into_owned())
+            .collect(),
+    })
 }
 
 #[tauri::command]
@@ -207,6 +244,55 @@ pub async fn capture_full_debug_state<R: Runtime>(
         .capture_snapshot_use_case
         .execute(&app, entries, validated_screenshot, validated_dom)
         .map_err(|e| e.to_string())
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct CopyScreenshotResult {
+    pub source_path: String,
+    pub destination_path: String,
+}
+
+#[tauri::command]
+#[tracing::instrument(skip(app))]
+pub async fn copy_screenshot_to_debug_dir<R: Runtime>(
+    app: AppHandle<R>,
+    source_path: String,
+) -> Result<CopyScreenshotResult, String> {
+    let state: State<'_, DebugToolsState> = app.state();
+
+    let source = std::path::PathBuf::from(&source_path);
+    if !source.exists() {
+        return Err(format!("Source file does not exist: {}", source_path));
+    }
+
+    let screenshot_dir = state.config.screenshot_dir();
+    std::fs::create_dir_all(&screenshot_dir).map_err(|e| e.to_string())?;
+
+    let filename = source
+        .file_name()
+        .and_then(|n| n.to_str())
+        .ok_or("Invalid source filename")?;
+
+    let timestamp = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map_err(|e| e.to_string())?
+        .as_secs();
+
+    let dest_filename = format!("{}_{}", timestamp, filename);
+    let destination = screenshot_dir.join(&dest_filename);
+
+    std::fs::copy(&source, &destination).map_err(|e| e.to_string())?;
+
+    tracing::info!(
+        source = %source_path,
+        destination = %destination.display(),
+        "Screenshot copied to debug directory"
+    );
+
+    Ok(CopyScreenshotResult {
+        source_path,
+        destination_path: destination.to_string_lossy().into_owned(),
+    })
 }
 
 #[tauri::command]
