@@ -31,7 +31,7 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
     Builder::new("debug-tools")
         .setup(|app, _api| {
             let config = Arc::new(
-                DebugToolsConfig::from_app_handle(&app.app_handle())
+                DebugToolsConfig::from_app_handle(app.app_handle())
                     .map_err(|e: ConfigError| e.to_string())?,
             );
 

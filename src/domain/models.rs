@@ -1,28 +1,6 @@
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-#[serde(rename_all = "lowercase")]
-pub enum LogLevel {
-    Trace,
-    Debug,
-    Info,
-    Warn,
-    Error,
-}
-
-impl std::fmt::Display for LogLevel {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            LogLevel::Trace => write!(f, "trace"),
-            LogLevel::Debug => write!(f, "debug"),
-            LogLevel::Info => write!(f, "info"),
-            LogLevel::Warn => write!(f, "warn"),
-            LogLevel::Error => write!(f, "error"),
-        }
-    }
-}
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct WebViewState {
     pub url: String,
