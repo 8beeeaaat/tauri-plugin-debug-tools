@@ -1,20 +1,9 @@
+use crate::adapters::filesystem::reset_console_logs;
+use crate::application::CaptureWebViewStateUseCase;
+use crate::domain::{ConsoleLogEntry, DebugSnapshot, DomSnapshotResult, WebViewState};
+use crate::DebugToolsState;
 use serde::{Deserialize, Serialize};
-use std::path::PathBuf;
-use tauri::{AppHandle, Emitter, Manager, Runtime};
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct WebViewState {
-    pub url: String,
-    pub title: String,
-    pub user_agent: String,
-    pub viewport: ViewportInfo,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct ViewportInfo {
-    pub width: u32,
-    pub height: u32,
-}
+use tauri::{AppHandle, Emitter, Manager, Runtime, State};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ConsoleMessage {
@@ -32,61 +21,41 @@ pub struct ConsoleLogEntryPayload {
     pub stack_trace: Option<String>,
 }
 
-fn console_log_path<R: Runtime>(app: &AppHandle<R>) -> PathBuf {
-    // Get application name from AppHandle
-    let app_name = app.package_info().name.replace(" ", "_");
-    // Get current process ID
-    let pid = std::process::id();
-    // Use /tmp on Unix-like systems, temp_dir() on Windows
-    #[cfg(unix)]
-    let base_dir = PathBuf::from("/tmp");
-    #[cfg(not(unix))]
-    let base_dir = std::env::temp_dir();
-
-    base_dir.join(format!("tauri_console_logs_{}_{}.jsonl", app_name, pid))
+#[derive(Debug, Serialize, Deserialize)]
+pub struct DomSnapshotPayload {
+    pub html: String,
+    pub url: String,
+    pub title: String,
+    pub viewport_width: u32,
+    pub viewport_height: u32,
 }
 
-/// Get WebView state.
+#[derive(Debug, Serialize, Deserialize)]
+pub struct LogDirectoryInfo {
+    pub base_dir: String,
+    pub frontend_log: String,
+    pub backend_log: String,
+    pub screenshot_dir: String,
+    pub dom_snapshot_dir: String,
+}
+
 #[tauri::command]
-pub async fn capture_webview_state<R: Runtime>(app: AppHandle<R>) -> Result<WebViewState, String> {
-    let window = app
-        .get_webview_window("main")
-        .ok_or("Main window not found")?;
-
-    let url = window.url().map_err(|e| e.to_string())?;
-    let title = window.title().map_err(|e| e.to_string())?;
-
-    // Fetch viewport information.
-    let size = window
-        .inner_size()
-        .map_err(|e| format!("Failed to get window size: {}", e))?;
-
-    Ok(WebViewState {
-        url: url.to_string(),
-        title,
-        user_agent: "TauriWebView/2.0".to_string(), // TODO: Fetch the real User-Agent.
-        viewport: ViewportInfo {
-            width: size.width,
-            height: size.height,
-        },
-    })
+#[tracing::instrument(skip(app))]
+pub async fn capture_webview_state<R: Runtime>(
+    app: AppHandle<R>,
+) -> Result<WebViewState, String> {
+    CaptureWebViewStateUseCase::execute(&app).map_err(|e| e.to_string())
 }
 
-/// Get console logs.
-/// NOTE: Prefer fetching logs directly on the frontend instead of buffering in Rust.
-/// Use debugBridge.getConsoleLogs() to inspect logs without Safari DevTools.
 #[tauri::command]
 pub async fn get_console_logs<R: Runtime>(
     _app: AppHandle<R>,
 ) -> Result<Vec<ConsoleMessage>, String> {
-    // Placeholder for backward compatibility.
-    // Actual log collection happens in the frontend consoleLogger.
     Ok(vec![])
 }
 
-/// Send a message to the WebView for frontend handling.
-/// Use event-based communication instead of eval().
 #[tauri::command]
+#[tracing::instrument(skip(app, payload))]
 pub async fn send_debug_command<R: Runtime>(
     app: AppHandle<R>,
     command: String,
@@ -96,64 +65,178 @@ pub async fn send_debug_command<R: Runtime>(
         .get_webview_window("main")
         .ok_or("Main window not found")?;
 
-    // Emit event to the frontend.
     window
-        .emit("debug-command", (command, payload))
+        .emit("debug-command", (command.clone(), payload))
         .map_err(|e| format!("Failed to send debug command: {}", e))?;
+
+    tracing::info!(command = %command, "Debug command sent to frontend");
 
     Ok("Command sent to frontend".to_string())
 }
 
-/// Append console logs to /tmp.
 #[tauri::command]
+#[tracing::instrument(skip(app, logs))]
 pub async fn append_debug_logs<R: Runtime>(
     app: AppHandle<R>,
     logs: Vec<ConsoleLogEntryPayload>,
 ) -> Result<String, String> {
-    if logs.is_empty() {
-        return Ok("no logs".to_string());
-    }
+    let state: State<'_, DebugToolsState> = app.state();
 
-    let path = console_log_path(&app);
-    let mut file = std::fs::OpenOptions::new()
-        .create(true)
-        .append(true)
-        .open(&path)
-        .map_err(|e| format!("Failed to open log file: {}", e))?;
+    let entries: Vec<ConsoleLogEntry> = logs
+        .into_iter()
+        .map(|p| ConsoleLogEntry {
+            timestamp: p.timestamp,
+            level: p.level,
+            message: p.message,
+            args: p.args,
+            stack_trace: p.stack_trace,
+        })
+        .collect();
 
-    for entry in logs {
-        let line = serde_json::to_string(&entry)
-            .map_err(|e| format!("Failed to serialize log entry: {}", e))?;
-        use std::io::Write;
-        writeln!(file, "{}", line).map_err(|e| format!("Failed to write log: {}", e))?;
-    }
-
-    Ok(path.to_string_lossy().into_owned())
+    state
+        .append_logs_use_case
+        .execute(entries)
+        .map_err(|e| e.to_string())
 }
 
-/// Reset the console log file.
 #[tauri::command]
+#[tracing::instrument(skip(app))]
 pub async fn reset_debug_logs<R: Runtime>(app: AppHandle<R>) -> Result<String, String> {
-    let path = console_log_path(&app);
-    std::fs::OpenOptions::new()
-        .create(true)
-        .write(true)
-        .truncate(true)
-        .open(&path)
-        .map_err(|e| format!("Failed to reset log file: {}", e))?;
+    let state: State<'_, DebugToolsState> = app.state();
+    let app_name = app.package_info().name.clone();
+    let pid = std::process::id();
+
+    let path =
+        reset_console_logs(&state.config, &app_name, pid).map_err(|e| e.to_string())?;
+
     Ok(path.to_string_lossy().into_owned())
 }
 
-/// Save a debug snapshot to /tmp.
 #[tauri::command]
+#[tracing::instrument(skip(payload))]
 pub async fn write_debug_snapshot(payload: serde_json::Value) -> Result<String, String> {
     let ts = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .map_err(|e| format!("Failed to get timestamp: {}", e))?
         .as_secs();
+
     let path = std::env::temp_dir().join(format!("tauri_debug_snapshot_{}.json", ts));
     let json = serde_json::to_string_pretty(&payload)
         .map_err(|e| format!("Failed to serialize payload: {}", e))?;
+
     std::fs::write(&path, json).map_err(|e| format!("Failed to write file: {}", e))?;
+
+    tracing::info!(path = %path.display(), "Legacy debug snapshot saved");
+
     Ok(path.to_string_lossy().into_owned())
+}
+
+#[tauri::command]
+#[tracing::instrument(skip(app, payload))]
+pub async fn capture_dom_snapshot<R: Runtime>(
+    app: AppHandle<R>,
+    payload: DomSnapshotPayload,
+) -> Result<DomSnapshotResult, String> {
+    let state: State<'_, DebugToolsState> = app.state();
+
+    state
+        .save_dom_use_case
+        .execute(
+            payload.html,
+            payload.url,
+            payload.title,
+            payload.viewport_width,
+            payload.viewport_height,
+        )
+        .map_err(|e| e.to_string())
+}
+
+fn validate_path_in_directory(
+    path_str: &str,
+    allowed_dir: &std::path::Path,
+) -> Result<std::path::PathBuf, String> {
+    let path = std::path::PathBuf::from(path_str);
+
+    if path.components().any(|c| c == std::path::Component::ParentDir) {
+        tracing::warn!(path = %path_str, "Path traversal attempt detected");
+        return Err("Invalid path: directory traversal not allowed".into());
+    }
+
+    if !path.starts_with(allowed_dir) {
+        tracing::warn!(
+            path = %path_str,
+            allowed_dir = %allowed_dir.display(),
+            "Path outside allowed directory"
+        );
+        return Err("Invalid path: must be within log directory".into());
+    }
+
+    Ok(path)
+}
+
+#[tauri::command]
+#[tracing::instrument(skip(app, console_logs))]
+pub async fn capture_full_debug_state<R: Runtime>(
+    app: AppHandle<R>,
+    console_logs: Vec<ConsoleLogEntryPayload>,
+    screenshot_path: Option<String>,
+    dom_snapshot_path: Option<String>,
+) -> Result<DebugSnapshot, String> {
+    let state: State<'_, DebugToolsState> = app.state();
+
+    let validated_screenshot = screenshot_path
+        .map(|p| validate_path_in_directory(&p, &state.config.log_dir))
+        .transpose()?;
+
+    let validated_dom = dom_snapshot_path
+        .map(|p| validate_path_in_directory(&p, &state.config.log_dir))
+        .transpose()?;
+
+    let entries: Vec<ConsoleLogEntry> = console_logs
+        .into_iter()
+        .map(|p| ConsoleLogEntry {
+            timestamp: p.timestamp,
+            level: p.level,
+            message: p.message,
+            args: p.args,
+            stack_trace: p.stack_trace,
+        })
+        .collect();
+
+    state
+        .capture_snapshot_use_case
+        .execute(&app, entries, validated_screenshot, validated_dom)
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+#[tracing::instrument(skip(app))]
+pub async fn get_log_directory<R: Runtime>(app: AppHandle<R>) -> Result<LogDirectoryInfo, String> {
+    let state: State<'_, DebugToolsState> = app.state();
+    let app_name = app.package_info().name.clone();
+    let pid = std::process::id();
+
+    Ok(LogDirectoryInfo {
+        base_dir: state.config.log_dir.to_string_lossy().into_owned(),
+        frontend_log: state
+            .config
+            .frontend_log_path(&app_name, pid)
+            .to_string_lossy()
+            .into_owned(),
+        backend_log: state
+            .config
+            .backend_log_path()
+            .to_string_lossy()
+            .into_owned(),
+        screenshot_dir: state
+            .config
+            .screenshot_dir()
+            .to_string_lossy()
+            .into_owned(),
+        dom_snapshot_dir: state
+            .config
+            .dom_snapshot_dir()
+            .to_string_lossy()
+            .into_owned(),
+    })
 }

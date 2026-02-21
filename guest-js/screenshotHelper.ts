@@ -10,6 +10,7 @@ import {
   getScreenshotableWindows,
   getWindowScreenshot,
 } from "tauri-plugin-screenshots-api";
+import { captureDOMSnapshot, type DomSnapshotResult } from "./domCapture";
 
 /**
  * Capture screenshot of the main (first) window
@@ -111,6 +112,33 @@ export async function listWindows() {
  */
 export async function listMonitors() {
   return await getScreenshotableMonitors();
+}
+
+/**
+ * Capture screenshot with DOM snapshot
+ *
+ * @returns Object containing screenshot path and DOM snapshot result
+ *
+ * @example
+ * ```typescript
+ * const { screenshot, domSnapshot } = await captureWithDOM();
+ * console.log(`Screenshot: ${screenshot}`);
+ * console.log(`DOM: ${domSnapshot.path}`);
+ * ```
+ */
+export async function captureWithDOM(): Promise<{
+  screenshot: string | null;
+  domSnapshot: DomSnapshotResult;
+}> {
+  const [screenshot, domSnapshot] = await Promise.all([
+    captureMainWindow(),
+    captureDOMSnapshot(),
+  ]);
+
+  return {
+    screenshot,
+    domSnapshot,
+  };
 }
 
 // Re-export core functions for advanced usage

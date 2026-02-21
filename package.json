@@ -47,6 +47,10 @@
     "./screenshotHelper": {
       "types": "./dist-js/screenshotHelper.d.ts",
       "import": "./dist-js/screenshotHelper.js"
+    },
+    "./domCapture": {
+      "types": "./dist-js/domCapture.d.ts",
+      "import": "./dist-js/domCapture.js"
     }
   },
   "scripts": {

@@ -1,30 +1,76 @@
+use std::sync::Arc;
 use tauri::{
     plugin::{Builder, TauriPlugin},
     Manager, Runtime,
 };
-use tauri_plugin_log::{Target, TargetKind};
 
+mod adapters;
+mod application;
 mod commands;
+mod config;
+mod domain;
+
+pub use config::DebugToolsConfig;
+pub use domain::{ConsoleLogEntry, DebugSnapshot, DomSnapshotResult, WebViewState};
+
+use adapters::{init_tracing, FileSystemRepository};
+use application::{AppendConsoleLogsUseCase, CaptureDebugSnapshotUseCase, SaveDomSnapshotUseCase};
+use config::ConfigError;
+
+pub struct DebugToolsState {
+    pub config: Arc<DebugToolsConfig>,
+    pub repository: Arc<FileSystemRepository>,
+    pub append_logs_use_case: Arc<AppendConsoleLogsUseCase<FileSystemRepository>>,
+    pub save_dom_use_case: Arc<SaveDomSnapshotUseCase<FileSystemRepository>>,
+    pub capture_snapshot_use_case: Arc<CaptureDebugSnapshotUseCase<FileSystemRepository>>,
+    #[allow(dead_code)]
+    tracing_guard: adapters::logging::TracingGuard,
+}
 
 pub fn init<R: Runtime>() -> TauriPlugin<R> {
     Builder::new("debug-tools")
         .setup(|app, _api| {
-            let log_plugin = tauri_plugin_log::Builder::new()
-                .targets([
-                    Target::new(TargetKind::Stdout),
-                    Target::new(TargetKind::LogDir {
-                        file_name: Some("debug.log".to_string()),
-                    }),
-                    Target::new(TargetKind::Webview),
-                ])
-                .max_file_size(50_000) // 50KB auto-rotation
-                .build();
-            let screenshots_plugin = tauri_plugin_screenshots::init();
+            let config = Arc::new(
+                DebugToolsConfig::from_app_handle(&app.app_handle())
+                    .map_err(|e: ConfigError| e.to_string())?,
+            );
 
+            config
+                .ensure_subdirectories()
+                .map_err(|e| e.to_string())?;
+
+            let tracing_guard = init_tracing(config.clone()).map_err(|e| e.to_string())?;
+
+            tracing::info!(
+                log_dir = %config.log_dir.display(),
+                "Debug tools plugin initialized"
+            );
+
+            let app_name = app.package_info().name.clone();
+            let repository = Arc::new(FileSystemRepository::new(config.clone(), app_name));
+
+            let append_logs_use_case = Arc::new(AppendConsoleLogsUseCase::new(repository.clone()));
+            let save_dom_use_case = Arc::new(SaveDomSnapshotUseCase::new(repository.clone()));
+            let capture_snapshot_use_case =
+                Arc::new(CaptureDebugSnapshotUseCase::new(repository.clone()));
+
+            let state = DebugToolsState {
+                config,
+                repository,
+                append_logs_use_case,
+                save_dom_use_case,
+                capture_snapshot_use_case,
+                tracing_guard,
+            };
+
+            app.manage(state);
+
+            let screenshots_plugin = tauri_plugin_screenshots::init();
             let handle = app.app_handle().clone();
             std::thread::spawn(move || {
-                let _ = handle.plugin(log_plugin);
-                let _ = handle.plugin(screenshots_plugin);
+                if let Err(e) = handle.plugin(screenshots_plugin) {
+                    tracing::error!(error = %e, "Failed to initialize screenshots plugin");
+                }
             });
 
             Ok(())
@@ -36,6 +82,9 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
             commands::append_debug_logs,
             commands::reset_debug_logs,
             commands::write_debug_snapshot,
+            commands::capture_dom_snapshot,
+            commands::capture_full_debug_state,
+            commands::get_log_directory,
         ])
         .build()
 }

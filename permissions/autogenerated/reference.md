@@ -59,6 +59,58 @@ Denies the append_debug_logs command without any pre-configured scope.
 <tr>
 <td>
 
+`debug-tools:allow-capture-dom-snapshot`
+
+</td>
+<td>
+
+Enables the capture_dom_snapshot command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`debug-tools:deny-capture-dom-snapshot`
+
+</td>
+<td>
+
+Denies the capture_dom_snapshot command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`debug-tools:allow-capture-full-debug-state`
+
+</td>
+<td>
+
+Enables the capture_full_debug_state command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`debug-tools:deny-capture-full-debug-state`
+
+</td>
+<td>
+
+Denies the capture_full_debug_state command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
 `debug-tools:allow-capture-webview-state`
 
 </td>
@@ -104,6 +156,32 @@ Enables the get_console_logs command without any pre-configured scope.
 <td>
 
 Denies the get_console_logs command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`debug-tools:allow-get-log-directory`
+
+</td>
+<td>
+
+Enables the get_log_directory command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`debug-tools:deny-get-log-directory`
+
+</td>
+<td>
+
+Denies the get_log_directory command without any pre-configured scope.
 
 </td>
 </tr>

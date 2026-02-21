@@ -307,6 +307,30 @@
           "markdownDescription": "Denies the append_debug_logs command without any pre-configured scope."
         },
         {
+          "description": "Enables the capture_dom_snapshot command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-capture-dom-snapshot",
+          "markdownDescription": "Enables the capture_dom_snapshot command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the capture_dom_snapshot command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-capture-dom-snapshot",
+          "markdownDescription": "Denies the capture_dom_snapshot command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the capture_full_debug_state command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-capture-full-debug-state",
+          "markdownDescription": "Enables the capture_full_debug_state command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the capture_full_debug_state command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-capture-full-debug-state",
+          "markdownDescription": "Denies the capture_full_debug_state command without any pre-configured scope."
+        },
+        {
           "description": "Enables the capture_webview_state command without any pre-configured scope.",
           "type": "string",
           "const": "allow-capture-webview-state",
@@ -329,6 +353,18 @@
           "type": "string",
           "const": "deny-get-console-logs",
           "markdownDescription": "Denies the get_console_logs command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the get_log_directory command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-get-log-directory",
+          "markdownDescription": "Enables the get_log_directory command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the get_log_directory command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-get-log-directory",
+          "markdownDescription": "Denies the get_log_directory command without any pre-configured scope."
         },
         {
           "description": "Enables the reset_debug_logs command without any pre-configured scope.",
