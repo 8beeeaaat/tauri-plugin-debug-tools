@@ -35,9 +35,7 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
                     .map_err(|e: ConfigError| e.to_string())?,
             );
 
-            config
-                .ensure_subdirectories()
-                .map_err(|e| e.to_string())?;
+            config.ensure_subdirectories().map_err(|e| e.to_string())?;
 
             let tracing_guard = init_tracing(config.clone()).map_err(|e| e.to_string())?;
 

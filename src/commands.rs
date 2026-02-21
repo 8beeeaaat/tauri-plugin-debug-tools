@@ -48,9 +48,7 @@ pub struct ClearDebugLogsResult {
 
 #[tauri::command]
 #[tracing::instrument(skip(app))]
-pub async fn capture_webview_state<R: Runtime>(
-    app: AppHandle<R>,
-) -> Result<WebViewState, String> {
+pub async fn capture_webview_state<R: Runtime>(app: AppHandle<R>) -> Result<WebViewState, String> {
     CaptureWebViewStateUseCase::execute(&app).map_err(|e| e.to_string())
 }
 
@@ -113,8 +111,7 @@ pub async fn reset_debug_logs<R: Runtime>(app: AppHandle<R>) -> Result<String, S
     let app_name = app.package_info().name.clone();
     let pid = std::process::id();
 
-    let path =
-        reset_console_logs(&state.config, &app_name, pid).map_err(|e| e.to_string())?;
+    let path = reset_console_logs(&state.config, &app_name, pid).map_err(|e| e.to_string())?;
 
     Ok(path.to_string_lossy().into_owned())
 }
@@ -127,8 +124,7 @@ pub async fn clear_debug_log_files_command<R: Runtime>(
     let state: State<'_, DebugToolsState> = app.state();
     let app_name = app.package_info().name.clone();
 
-    let report =
-        clear_debug_log_files(&state.config, &app_name).map_err(|e| e.to_string())?;
+    let report = clear_debug_log_files(&state.config, &app_name).map_err(|e| e.to_string())?;
 
     Ok(ClearDebugLogsResult {
         deleted_paths: report
@@ -194,7 +190,10 @@ fn validate_path_in_directory(
 ) -> Result<std::path::PathBuf, String> {
     let path = std::path::PathBuf::from(path_str);
 
-    if path.components().any(|c| c == std::path::Component::ParentDir) {
+    if path
+        .components()
+        .any(|c| c == std::path::Component::ParentDir)
+    {
         tracing::warn!(path = %path_str, "Path traversal attempt detected");
         return Err("Invalid path: directory traversal not allowed".into());
     }
@@ -314,11 +313,7 @@ pub async fn get_log_directory<R: Runtime>(app: AppHandle<R>) -> Result<LogDirec
             .backend_log_path()
             .to_string_lossy()
             .into_owned(),
-        screenshot_dir: state
-            .config
-            .screenshot_dir()
-            .to_string_lossy()
-            .into_owned(),
+        screenshot_dir: state.config.screenshot_dir().to_string_lossy().into_owned(),
         dom_snapshot_dir: state
             .config
             .dom_snapshot_dir()

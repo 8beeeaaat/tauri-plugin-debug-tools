@@ -32,7 +32,11 @@ pub enum DomCaptureError {
 
 pub trait SnapshotRepository: Send + Sync {
     fn save_snapshot(&self, snapshot: &DebugSnapshot) -> Result<PathBuf, RepositoryError>;
-    fn save_dom(&self, dom: &DomState, timestamp: i64) -> Result<DomSnapshotResult, RepositoryError>;
+    fn save_dom(
+        &self,
+        dom: &DomState,
+        timestamp: i64,
+    ) -> Result<DomSnapshotResult, RepositoryError>;
     fn save_console_logs(
         &self,
         logs: &[crate::domain::models::ConsoleLogEntry],
